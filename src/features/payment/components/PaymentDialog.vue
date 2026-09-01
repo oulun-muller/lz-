@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { paymentCopy } from '../data/copy'
 import { activationSteps, qrCodeImage } from '../data/mock'
 import type {
@@ -49,6 +49,72 @@ const showBack = computed(() =>
 const showDualActions = computed(() => props.step === 'success')
 const showPayAction = computed(() => props.step === 'confirm')
 const showBackAction = computed(() => props.step === 'failure')
+const showFooterSpacer = computed(() =>
+  ['qrcode', 'loading', 'allocating'].includes(props.step),
+)
+
+const activationScrollRef = ref<HTMLElement | null>(null)
+const activationTrackRef = ref<HTMLElement | null>(null)
+const activationThumbHeight = ref(80)
+const activationThumbOffset = ref(0)
+
+let boundActivationScroller: HTMLElement | null = null
+let activationResizeObserver: ResizeObserver | null = null
+
+function syncActivationThumb() {
+  const scroller = boundActivationScroller || activationScrollRef.value
+  const track = activationTrackRef.value
+  if (!scroller || !track) return
+
+  const { scrollTop, scrollHeight, clientHeight } = scroller
+  const styles = window.getComputedStyle(track)
+  const padTop = Number.parseFloat(styles.paddingTop) || 0
+  const padBottom = Number.parseFloat(styles.paddingBottom) || 0
+  const trackInner = Math.max(track.clientHeight - padTop - padBottom, 1)
+  const proportional = (clientHeight / Math.max(scrollHeight, 1)) * trackInner
+  const thumbHeight = Math.min(80, Math.max(32, proportional))
+  const maxOffset = Math.max(trackInner - thumbHeight, 0)
+  const maxScroll = Math.max(scrollHeight - clientHeight, 0)
+  const offset = maxScroll === 0 ? 0 : (scrollTop / maxScroll) * maxOffset
+
+  activationThumbHeight.value = thumbHeight
+  activationThumbOffset.value = offset
+}
+
+function unbindActivationScroll() {
+  boundActivationScroller?.removeEventListener('scroll', syncActivationThumb)
+  boundActivationScroller = null
+  activationResizeObserver?.disconnect()
+  activationResizeObserver = null
+}
+
+function bindActivationScroll() {
+  unbindActivationScroll()
+  const scroller = activationScrollRef.value
+  if (!scroller) return
+  boundActivationScroller = scroller
+  scroller.addEventListener('scroll', syncActivationThumb, { passive: true })
+  activationResizeObserver = new ResizeObserver(() => syncActivationThumb())
+  activationResizeObserver.observe(scroller)
+  syncActivationThumb()
+}
+
+watch(
+  () => [props.visible, props.step] as const,
+  async ([visible, step]) => {
+    await nextTick()
+    if (visible && step === 'activation') {
+      bindActivationScroll()
+    } else {
+      unbindActivationScroll()
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  unbindActivationScroll()
+})
 
 const successDetails = computed(() => [
   ...props.order.details,
@@ -66,6 +132,10 @@ function onDialogClose() {
 </script>
 
 <template>
+  <div
+    class="payment-layer"
+    :class="placement === 'bottom' ? 'is-sheet' : 'is-modal'"
+  >
   <el-dialog
     :visible="visible"
     :custom-class="dialogClass"
@@ -280,7 +350,11 @@ function onDialogClose() {
           </button>
         </div>
         <div class="payment-dialog__divider" />
-        <div class="payment-dialog__activation-scroll">
+        <div
+          ref="activationScrollRef"
+          class="payment-dialog__activation-scroll"
+          @scroll="syncActivationThumb"
+        >
           <article
             v-for="(item, index) in activationSteps"
             :key="index"
@@ -331,8 +405,23 @@ function onDialogClose() {
         {{ paymentCopy.back }}
       </button>
     </footer>
-    <div v-else class="payment-dialog__footer payment-dialog__footer--spacer" />
+    <div v-else-if="showFooterSpacer" class="payment-dialog__footer payment-dialog__footer--spacer" />
+    <div
+      v-if="step === 'activation'"
+      ref="activationTrackRef"
+      class="payment-dialog__scrollbar"
+      aria-hidden="true"
+    >
+      <div
+        class="payment-dialog__scrollbar-thumb"
+        :style="{
+          height: `${activationThumbHeight}px`,
+          transform: `translateY(${activationThumbOffset}px)`,
+        }"
+      />
+    </div>
   </el-dialog>
+  </div>
 </template>
 
 <style scoped>
@@ -379,7 +468,7 @@ function onDialogClose() {
 
 .payment-dialog__body.is-activation {
   gap: var(--space-24);
-  padding: 0;
+  padding: var(--space-24) 0 0;
   overflow: hidden;
 }
 
@@ -695,8 +784,40 @@ function onDialogClose() {
 .payment-dialog__activation-scroll {
   flex: 1;
   min-height: 0;
-  padding: 0 var(--space-16) var(--space-16);
+  padding: 0 var(--space-16) var(--payment-scrollbar-pad-bottom);
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.payment-dialog__activation-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.payment-dialog__scrollbar {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--payment-scrollbar-gutter);
+  padding: var(--payment-scrollbar-pad-top) var(--space-4) var(--payment-scrollbar-pad-bottom);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.payment-dialog__scrollbar-thumb {
+  flex-shrink: 0;
+  width: var(--payment-scrollbar-thumb);
+  border-radius: 2px;
+  background: var(--color-payment-scrollbar);
+  will-change: transform;
 }
 
 .payment-dialog__activation-step {
@@ -706,6 +827,10 @@ function onDialogClose() {
   align-items: center;
   margin-bottom: var(--space-24);
   text-align: center;
+}
+
+.payment-dialog__activation-step:last-child {
+  margin-bottom: 0;
 }
 
 .payment-dialog__activation-heading {
@@ -774,18 +899,26 @@ function onDialogClose() {
 </style>
 
 <style>
-.payment-demo .el-dialog__wrapper,
-.payment-demo .v-modal {
+.payment-layer {
   position: absolute;
   inset: 0;
+  z-index: var(--z-payment);
+  pointer-events: none;
 }
 
-.payment-demo .v-modal {
+.payment-layer .el-dialog__wrapper,
+.payment-layer .v-modal {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.payment-layer .v-modal {
   z-index: calc(var(--z-payment) - 1) !important;
   background: rgba(0, 0, 0, 0.6) !important;
 }
 
-.payment-demo .el-dialog__wrapper {
+.payment-layer .el-dialog__wrapper {
   z-index: var(--z-payment) !important;
   overflow: hidden;
 }
@@ -805,11 +938,13 @@ function onDialogClose() {
 }
 
 .payment-dialog .el-dialog__body {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 0;
   padding: 0;
+  overflow: hidden;
   color: var(--color-payment-amount);
 }
 
@@ -822,7 +957,6 @@ function onDialogClose() {
   width: 100% !important;
   max-width: 100%;
   border-radius: var(--payment-dialog-radius) var(--payment-dialog-radius) 0 0;
-  transform: none;
 }
 
 .payment-dialog--center.el-dialog {
@@ -835,34 +969,35 @@ function onDialogClose() {
   transform: translate(-50%, -50%);
 }
 
-.payment-demo .el-dialog__wrapper.dialog-fade-enter-active:has(.payment-dialog--bottom),
-.payment-demo .el-dialog__wrapper.dialog-fade-leave-active:has(.payment-dialog--bottom) {
-  animation: none !important;
+.payment-layer.is-sheet .el-dialog__wrapper.dialog-fade-enter-active,
+.payment-layer.is-sheet .dialog-fade-enter-active {
+  animation: payment-sheet-in var(--payment-sheet-in-duration) cubic-bezier(0.22, 1, 0.36, 1) both !important;
 }
 
-.payment-demo .el-dialog__wrapper.dialog-fade-enter-active:has(.payment-dialog--bottom) .payment-dialog--bottom {
-  animation: payment-sheet-in 280ms ease-out;
-}
-
-.payment-demo .el-dialog__wrapper.dialog-fade-leave-active:has(.payment-dialog--bottom) .payment-dialog--bottom {
-  animation: payment-sheet-out 240ms ease-in;
+.payment-layer.is-sheet .el-dialog__wrapper.dialog-fade-leave-active,
+.payment-layer.is-sheet .dialog-fade-leave-active {
+  animation: payment-sheet-out var(--payment-sheet-out-duration) cubic-bezier(0.4, 0, 1, 1) both !important;
 }
 
 @keyframes payment-sheet-in {
   from {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
+    opacity: 1;
   }
   to {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 }
 
 @keyframes payment-sheet-out {
   from {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
   to {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
+    opacity: 1;
   }
 }
 </style>

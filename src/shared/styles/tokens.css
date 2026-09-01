@@ -62,6 +62,15 @@
   --payment-dialog-width-pad: 600px;
   --payment-dialog-radius: 8px;
   --payment-dialog-shadow: 0 2px 20px rgba(13, 13, 13, 0.8);
+  --color-payment-scrollbar: rgba(255, 255, 255, 0.12);
+  --payment-scrollbar-gutter: 12px;
+  --payment-scrollbar-thumb: 4px;
+  --payment-scrollbar-thumb-max: 80px;
+  --payment-scrollbar-thumb-min: 32px;
+  --payment-scrollbar-pad-top: 12px;
+  --payment-scrollbar-pad-bottom: 32px;
+  --payment-sheet-in-duration: 400ms;
+  --payment-sheet-out-duration: 320ms;
 
   /* Z-index */
   --z-content: 1;
