@@ -10,7 +10,7 @@ import type {
   PaymentStep,
 } from './data/types'
 import { usePayment } from './state/usePayment'
-import { getDeviceType } from '@/shared/utils/viewport'
+import { getPaymentPlacement } from '@/shared/utils/viewport'
 import landingHero from './assets/landing-hero.png'
 
 const props = defineProps<{
@@ -42,7 +42,7 @@ const {
 })
 
 const paymentPlacement = computed<PaymentPlacement>(() =>
-  getDeviceType(props.viewportWidth) === 'phone' ? 'bottom' : 'center',
+  getPaymentPlacement(props.viewportWidth),
 )
 
 watch(paymentStep, (step) => emit('change-payment-step', step), { immediate: true })

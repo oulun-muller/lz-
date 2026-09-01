@@ -69,11 +69,12 @@ function onDialogClose() {
   <el-dialog
     :visible="visible"
     :custom-class="dialogClass"
-    :modal-append-to-body="true"
+    :modal-append-to-body="false"
+    :append-to-body="false"
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     :show-close="false"
-    :append-to-body="true"
+    top="0"
     width="100%"
     @close="onDialogClose"
   >
@@ -773,6 +774,22 @@ function onDialogClose() {
 </style>
 
 <style>
+.payment-demo .el-dialog__wrapper,
+.payment-demo .v-modal {
+  position: absolute;
+  inset: 0;
+}
+
+.payment-demo .v-modal {
+  z-index: calc(var(--z-payment) - 1) !important;
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.payment-demo .el-dialog__wrapper {
+  z-index: var(--z-payment) !important;
+  overflow: hidden;
+}
+
 .payment-dialog.el-dialog {
   display: flex;
   flex-direction: column;
@@ -797,29 +814,55 @@ function onDialogClose() {
 }
 
 .payment-dialog--bottom.el-dialog {
-  position: fixed;
+  position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
+  top: auto !important;
   width: 100% !important;
   max-width: 100%;
   border-radius: var(--payment-dialog-radius) var(--payment-dialog-radius) 0 0;
+  transform: none;
 }
 
 .payment-dialog--center.el-dialog {
-  top: 50%;
-  width: min(var(--payment-dialog-width-pad), calc(100vw - 32px)) !important;
+  position: absolute;
+  top: 50% !important;
+  left: 50%;
+  width: min(var(--payment-dialog-width-pad), calc(100% - 32px)) !important;
   max-width: var(--payment-dialog-width-pad);
   border-radius: var(--payment-dialog-radius);
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
 }
 
-.v-modal {
-  z-index: calc(var(--z-payment) - 1) !important;
-  background: rgba(0, 0, 0, 0.6) !important;
+.payment-demo .el-dialog__wrapper.dialog-fade-enter-active:has(.payment-dialog--bottom),
+.payment-demo .el-dialog__wrapper.dialog-fade-leave-active:has(.payment-dialog--bottom) {
+  animation: none !important;
 }
 
-.payment-dialog.el-dialog__wrapper {
-  z-index: var(--z-payment) !important;
+.payment-demo .el-dialog__wrapper.dialog-fade-enter-active:has(.payment-dialog--bottom) .payment-dialog--bottom {
+  animation: payment-sheet-in 280ms ease-out;
+}
+
+.payment-demo .el-dialog__wrapper.dialog-fade-leave-active:has(.payment-dialog--bottom) .payment-dialog--bottom {
+  animation: payment-sheet-out 240ms ease-in;
+}
+
+@keyframes payment-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes payment-sheet-out {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
 }
 </style>

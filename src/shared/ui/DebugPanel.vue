@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { getBreakpointLabel, getDeviceType } from '@/shared/utils/viewport'
+import {
+  getBreakpointLabel,
+  getDeviceType,
+  getPaymentPlacement,
+  PAYMENT_CENTER_MIN_WIDTH,
+} from '@/shared/utils/viewport'
 import { paymentCopy, paymentStepLabels } from '@/features/payment/data/copy'
 import type {
   PaymentDebugState,
@@ -29,6 +34,7 @@ const emit = defineEmits<{
 const open = ref(false)
 const device = computed(() => getDeviceType(props.viewportWidth))
 const breakpoint = computed(() => getBreakpointLabel(props.viewportWidth))
+const placement = computed(() => getPaymentPlacement(props.viewportWidth))
 const outcomes: PaymentOutcome[] = ['success', 'failure']
 </script>
 
@@ -53,9 +59,10 @@ const outcomes: PaymentOutcome[] = ['success', 'failure']
       <p>
         弹窗布局
         <el-tag size="small" type="warning">
-          {{ device === 'phone' ? 'bottom 底部' : 'center 居中' }}
+          {{ placement === 'bottom' ? 'bottom 底部' : 'center 居中' }}
         </el-tag>
       </p>
+      <p>形态节点：&lt; {{ PAYMENT_CENTER_MIN_WIDTH }}px 底部，≥ {{ PAYMENT_CENTER_MIN_WIDTH }}px 居中</p>
 
       <h4>预览宽度</h4>
       <div class="debug__chips">
