@@ -4,6 +4,7 @@ export type PaymentStep =
   | 'confirm'
   | 'qrcode'
   | 'loading'
+  | 'allocating'
   | 'success'
   | 'failure'
   | 'activation'
@@ -29,7 +30,8 @@ export interface PaymentOrder {
 }
 
 export interface ActivationStep {
-  title: string
+  heading: string
+  body: string
   image: string
 }
 
@@ -37,6 +39,7 @@ export interface PaymentMockConfig {
   walletInstalled: boolean
   outcome: PaymentOutcome
   processingMs: number
+  allocatingMs: number
 }
 
 export interface PaymentDebugState {

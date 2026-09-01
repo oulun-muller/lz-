@@ -3,7 +3,6 @@ import type {
   PaymentDebugState,
   PaymentMethod,
   PaymentOrder,
-  PaymentOutcome,
   PaymentStep,
 } from '../data/types'
 import { defaultPaymentConfig } from '../data/mock'
@@ -47,13 +46,22 @@ export function usePayment(options: {
     method.value = next
   }
 
+  function finishOutcome() {
+    const outcome = options.debug().outcome ?? defaultPaymentConfig.outcome
+    if (outcome === 'success') {
+      step.value = 'allocating'
+      timer = setTimeout(() => {
+        step.value = 'success'
+      }, defaultPaymentConfig.allocatingMs)
+      return
+    }
+    step.value = 'failure'
+  }
+
   function startProcessing() {
     step.value = 'loading'
     clearTimer()
-    timer = setTimeout(() => {
-      const outcome = options.debug().outcome ?? defaultPaymentConfig.outcome
-      step.value = outcome === 'success' ? 'success' : 'failure'
-    }, defaultPaymentConfig.processingMs)
+    timer = setTimeout(finishOutcome, defaultPaymentConfig.processingMs)
   }
 
   function submitPay() {
@@ -69,16 +77,17 @@ export function usePayment(options: {
     }, 2200)
   }
 
-  function retryPay() {
-    startProcessing()
+  function goBack() {
+    clearTimer()
+    if (step.value === 'activation') {
+      step.value = 'success'
+      return
+    }
+    step.value = 'confirm'
   }
 
   function openActivation() {
     step.value = 'activation'
-  }
-
-  function backFromActivation() {
-    step.value = 'success'
   }
 
   watch(
@@ -99,9 +108,8 @@ export function usePayment(options: {
     close,
     selectMethod,
     submitPay,
-    retryPay,
+    goBack,
     openActivation,
-    backFromActivation,
   }
 }
 

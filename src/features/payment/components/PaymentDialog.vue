@@ -14,6 +14,7 @@ import iconCaution from '../assets/icon-caution.svg'
 import iconCheckSuccess from '../assets/icon-check-success.svg'
 import iconClose from '../assets/icon-close.svg'
 import iconCopy from '../assets/icon-copy.svg'
+import iconLoading from '../assets/icon-loading.svg'
 import iconMethodSelected from '../assets/icon-method-selected.svg'
 import iconSteam from '../assets/icon-steam.svg'
 import iconWechat from '../assets/icon-wechat.svg'
@@ -28,12 +29,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
+  back: []
   'select-method': [method: PaymentMethod]
   'submit-pay': []
-  'retry-pay': []
   'open-activation': []
-  'back-from-activation': []
-  'copy-code': []
+  'copy-text': [text: string]
 }>()
 
 const dialogClass = computed(() =>
@@ -42,17 +42,13 @@ const dialogClass = computed(() =>
     : 'payment-dialog payment-dialog--center',
 )
 
-const showClose = computed(() => props.step !== 'loading')
-const showBack = computed(() => props.step === 'activation')
-const showDualActions = computed(() => props.step === 'success')
-const showPrimaryAction = computed(
-  () => props.step === 'confirm' || props.step === 'failure',
+const showBack = computed(() =>
+  ['qrcode', 'loading', 'failure', 'activation'].includes(props.step),
 )
 
-const headerTitle = computed(() => {
-  if (props.step === 'activation') return paymentCopy.viewActivation
-  return ''
-})
+const showDualActions = computed(() => props.step === 'success')
+const showPayAction = computed(() => props.step === 'confirm')
+const showBackAction = computed(() => props.step === 'failure')
 
 const successDetails = computed(() => [
   ...props.order.details,
@@ -65,7 +61,6 @@ const successDetails = computed(() => [
 ])
 
 function onDialogClose() {
-  if (props.step === 'loading') return
   emit('close')
 }
 </script>
@@ -75,9 +70,10 @@ function onDialogClose() {
     :visible="visible"
     :custom-class="dialogClass"
     :modal-append-to-body="true"
-    :close-on-click-modal="step !== 'loading'"
-    :close-on-press-escape="step !== 'loading'"
+    :close-on-click-modal="true"
+    :close-on-press-escape="true"
     :show-close="false"
+    :append-to-body="true"
     width="100%"
     @close="onDialogClose"
   >
@@ -86,25 +82,22 @@ function onDialogClose() {
         v-if="showBack"
         type="button"
         class="payment-dialog__icon-btn"
-        aria-label="back"
-        @click="emit('back-from-activation')"
+        :aria-label="paymentCopy.back"
+        @click.stop="emit('back')"
       >
         <img class="payment-dialog__icon" :src="iconBack" alt="" />
       </button>
-      <span v-if="headerTitle" class="payment-dialog__title">{{ headerTitle }}</span>
       <button
-        v-if="showClose"
         type="button"
         class="payment-dialog__icon-btn payment-dialog__icon-btn--close"
-        aria-label="close"
-        @click="emit('close')"
+        :aria-label="paymentCopy.close"
+        @click.stop="emit('close')"
       >
         <img class="payment-dialog__icon" :src="iconClose" alt="" />
       </button>
     </header>
 
-    <div class="payment-dialog__body">
-      <!-- Confirm -->
+    <div class="payment-dialog__body" :class="`is-${step}`">
       <template v-if="step === 'confirm'">
         <div class="payment-dialog__amount-block">
           <p class="payment-dialog__amount-label">{{ paymentCopy.amountLabel }}</p>
@@ -170,7 +163,6 @@ function onDialogClose() {
         </div>
       </template>
 
-      <!-- QR Code -->
       <template v-else-if="step === 'qrcode'">
         <div class="payment-dialog__amount-block">
           <p class="payment-dialog__amount-label">{{ paymentCopy.amountLabel }}</p>
@@ -179,36 +171,46 @@ function onDialogClose() {
             <span class="payment-dialog__amount-value">{{ order.amount }}</span>
           </p>
         </div>
-        <div class="payment-dialog__qr-wrap">
-          <img class="payment-dialog__qr" :src="qrCodeImage" alt="payment qrcode" />
-        </div>
-        <p class="payment-dialog__qr-hint">
-          <span>{{ paymentCopy.qrHintPrefix }}</span>
-          <span class="payment-dialog__qr-brand">
-            <img :src="iconWechat" alt="" />
-            {{ paymentCopy.wechat }}
-          </span>
-          <span>{{ paymentCopy.qrHintOr }}</span>
-          <span class="payment-dialog__qr-brand">
-            <img :src="iconAlipay" alt="" />
-            {{ paymentCopy.alipay }}
-          </span>
-          <span>{{ paymentCopy.qrHintSuffix }}</span>
-        </p>
-      </template>
-
-      <!-- Loading -->
-      <template v-else-if="step === 'loading'">
-        <div class="payment-dialog__status">
-          <div class="payment-dialog__spinner" aria-hidden="true" />
-          <p class="payment-dialog__status-title">{{ paymentCopy.paying }}</p>
-          <p class="payment-dialog__status-hint">
-            {{ paymentCopy.amountLabel }}：{{ order.currencySymbol }}{{ order.amount }}
+        <div class="payment-dialog__qr-block">
+          <div class="payment-dialog__qr-wrap">
+            <img class="payment-dialog__qr" :src="qrCodeImage" alt="" />
+          </div>
+          <p class="payment-dialog__qr-hint">
+            <span>{{ paymentCopy.qrHintPrefix }}</span>
+            <span class="payment-dialog__qr-brand">
+              <img :src="iconWechat" alt="" />
+              <span>{{ paymentCopy.wechat }}</span>
+            </span>
+            <span>{{ paymentCopy.qrHintOr }}</span>
+            <span class="payment-dialog__qr-brand">
+              <img :src="iconAlipay" alt="" />
+              <span>{{ paymentCopy.alipay }}</span>
+            </span>
+            <span>{{ paymentCopy.qrHintSuffix }}</span>
           </p>
         </div>
       </template>
 
-      <!-- Success -->
+      <template v-else-if="step === 'loading'">
+        <div class="payment-dialog__status">
+          <div class="payment-dialog__spinner-wrap">
+            <img class="payment-dialog__spinner-icon" :src="iconLoading" alt="" />
+          </div>
+          <p class="payment-dialog__status-title">{{ paymentCopy.waitingPay }}</p>
+          <p class="payment-dialog__status-hint">{{ paymentCopy.waitingPayHint }}</p>
+        </div>
+      </template>
+
+      <template v-else-if="step === 'allocating'">
+        <div class="payment-dialog__status">
+          <div class="payment-dialog__spinner-wrap">
+            <img class="payment-dialog__spinner-icon" :src="iconLoading" alt="" />
+          </div>
+          <p class="payment-dialog__status-title">{{ paymentCopy.allocating }}</p>
+          <p class="payment-dialog__status-hint">{{ paymentCopy.allocatingHint }}</p>
+        </div>
+      </template>
+
       <template v-else-if="step === 'success'">
         <div class="payment-dialog__success-head">
           <img class="payment-dialog__success-icon" :src="iconCheckSuccess" alt="" />
@@ -220,7 +222,7 @@ function onDialogClose() {
               type="button"
               class="payment-dialog__copy-btn"
               :aria-label="paymentCopy.copyCode"
-              @click="emit('copy-code')"
+              @click="emit('copy-text', order.activationCode)"
             >
               <img :src="iconCopy" alt="" />
             </button>
@@ -245,7 +247,8 @@ function onDialogClose() {
                 v-if="row.copyable"
                 type="button"
                 class="payment-dialog__copy-btn payment-dialog__copy-btn--inline"
-                @click="emit('copy-code')"
+                :aria-label="paymentCopy.copyOrder"
+                @click="emit('copy-text', row.value)"
               >
                 <img :src="iconCopy" alt="" />
               </button>
@@ -254,7 +257,6 @@ function onDialogClose() {
         </dl>
       </template>
 
-      <!-- Failure -->
       <template v-else-if="step === 'failure'">
         <div class="payment-dialog__status">
           <img class="payment-dialog__caution-icon" :src="iconCaution" alt="" />
@@ -263,12 +265,16 @@ function onDialogClose() {
         </div>
       </template>
 
-      <!-- Activation guide -->
       <template v-else-if="step === 'activation'">
         <div class="payment-dialog__activation-code">
-          <span>{{ paymentCopy.activationGuideTitle }}</span>
-          <span>{{ order.activationCode }}</span>
-          <button type="button" class="payment-dialog__copy-btn" @click="emit('copy-code')">
+          <span class="payment-dialog__activation-label">{{ paymentCopy.activationCodeLabel }}</span>
+          <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
+          <button
+            type="button"
+            class="payment-dialog__copy-btn"
+            :aria-label="paymentCopy.copyCode"
+            @click="emit('copy-text', order.activationCode)"
+          >
             <img :src="iconCopy" alt="" />
           </button>
         </div>
@@ -279,14 +285,18 @@ function onDialogClose() {
             :key="index"
             class="payment-dialog__activation-step"
           >
-            <p class="payment-dialog__activation-title">{{ item.title }}</p>
-            <img class="payment-dialog__activation-image" :src="item.image" :alt="item.title" />
+            <p class="payment-dialog__activation-heading">{{ item.heading }}</p>
+            <p class="payment-dialog__activation-body">{{ item.body }}</p>
+            <img class="payment-dialog__activation-image" :src="item.image" :alt="item.heading" />
           </article>
         </div>
       </template>
     </div>
 
-    <footer v-if="showPrimaryAction || showDualActions" class="payment-dialog__footer">
+    <footer
+      v-if="showPayAction || showDualActions || showBackAction"
+      class="payment-dialog__footer"
+    >
       <template v-if="showDualActions">
         <button
           type="button"
@@ -295,12 +305,16 @@ function onDialogClose() {
         >
           {{ paymentCopy.viewActivation }}
         </button>
-        <button type="button" class="payment-dialog__btn payment-dialog__btn--primary" @click="emit('close')">
+        <button
+          type="button"
+          class="payment-dialog__btn payment-dialog__btn--primary"
+          @click="emit('close')"
+        >
           {{ paymentCopy.done }}
         </button>
       </template>
       <button
-        v-else-if="step === 'confirm'"
+        v-else-if="showPayAction"
         type="button"
         class="payment-dialog__btn payment-dialog__btn--primary payment-dialog__btn--full"
         @click="emit('submit-pay')"
@@ -308,36 +322,26 @@ function onDialogClose() {
         {{ paymentCopy.payNow }}
       </button>
       <button
-        v-else-if="step === 'failure'"
+        v-else-if="showBackAction"
         type="button"
-        class="payment-dialog__btn payment-dialog__btn--primary payment-dialog__btn--full"
-        @click="emit('retry-pay')"
+        class="payment-dialog__btn payment-dialog__btn--secondary payment-dialog__btn--full"
+        @click="emit('back')"
       >
-        {{ paymentCopy.retryPay }}
+        {{ paymentCopy.back }}
       </button>
     </footer>
+    <div v-else class="payment-dialog__footer payment-dialog__footer--spacer" />
   </el-dialog>
 </template>
 
 <style scoped>
 .payment-dialog__header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: flex-end;
-  min-height: 48px;
-  padding: 0 var(--space-4);
-}
-
-.payment-dialog__header:has(.payment-dialog__title) {
-  justify-content: space-between;
-}
-
-.payment-dialog__title {
-  flex: 1;
-  padding-left: var(--space-12);
-  color: var(--color-payment-amount);
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-semibold);
+  width: 100%;
+  height: 48px;
 }
 
 .payment-dialog__icon-btn {
@@ -357,6 +361,7 @@ function onDialogClose() {
 }
 
 .payment-dialog__icon {
+  display: block;
   width: 32px;
   height: 32px;
 }
@@ -367,7 +372,14 @@ function onDialogClose() {
   flex-direction: column;
   gap: var(--space-24);
   min-height: 0;
-  padding: 0 var(--space-16) var(--space-16);
+  padding: 0 var(--space-16);
+  overflow: hidden;
+}
+
+.payment-dialog__body.is-activation {
+  gap: var(--space-24);
+  padding: 0;
+  overflow: hidden;
 }
 
 .payment-dialog__amount-block {
@@ -383,6 +395,8 @@ function onDialogClose() {
   margin: 0;
   color: var(--color-payment-label);
   font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: normal;
 }
 
 .payment-dialog__amount {
@@ -393,12 +407,12 @@ function onDialogClose() {
 
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
-  font-weight: var(--font-weight-semibold);
+  font-weight: 700;
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
-  font-weight: var(--font-weight-semibold);
+  font-weight: 700;
 }
 
 .payment-dialog__detail-card {
@@ -421,6 +435,7 @@ function onDialogClose() {
   color: var(--color-payment-detail-label);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
+  line-height: normal;
 }
 
 .payment-dialog__detail-row dd {
@@ -433,6 +448,7 @@ function onDialogClose() {
   margin: 0;
   color: var(--color-payment-detail-value);
   font-size: var(--font-size-14);
+  line-height: normal;
   text-align: right;
 }
 
@@ -459,6 +475,7 @@ function onDialogClose() {
   margin: 0;
   color: var(--color-payment-detail-label);
   font-size: var(--font-size-14);
+  line-height: normal;
 }
 
 .payment-dialog__methods-grid {
@@ -502,6 +519,13 @@ function onDialogClose() {
   height: 20px;
 }
 
+.payment-dialog__qr-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-48);
+  align-items: center;
+}
+
 .payment-dialog__qr-wrap {
   display: flex;
   align-items: center;
@@ -511,6 +535,7 @@ function onDialogClose() {
 }
 
 .payment-dialog__qr {
+  display: block;
   width: 140px;
   height: 140px;
   object-fit: cover;
@@ -525,6 +550,7 @@ function onDialogClose() {
   margin: 0;
   color: var(--color-payment-label);
   font-size: var(--font-size-14);
+  line-height: normal;
   text-align: center;
 }
 
@@ -547,16 +573,20 @@ function onDialogClose() {
   gap: var(--space-16);
   align-items: center;
   justify-content: center;
-  min-height: 280px;
   text-align: center;
 }
 
-.payment-dialog__spinner {
+.payment-dialog__spinner-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+}
+
+.payment-dialog__spinner-icon {
   width: 56px;
   height: 56px;
-  border: 3px solid rgba(234, 247, 255, 0.16);
-  border-top-color: var(--color-payment-primary);
-  border-radius: 50%;
   animation: payment-spin 0.9s linear infinite;
 }
 
@@ -569,12 +599,15 @@ function onDialogClose() {
   margin: 0;
   color: var(--color-payment-amount);
   font-size: var(--font-size-16);
+  font-weight: var(--font-weight-regular);
+  line-height: normal;
 }
 
 .payment-dialog__status-hint {
   margin: 0;
   color: var(--color-payment-detail-label);
   font-size: var(--font-size-14);
+  line-height: normal;
 }
 
 .payment-dialog__success-head {
@@ -582,7 +615,7 @@ function onDialogClose() {
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;
-  padding-bottom: var(--space-16);
+  padding: 0 var(--space-16) var(--space-48);
   text-align: center;
 }
 
@@ -595,12 +628,13 @@ function onDialogClose() {
   margin: 0;
   color: var(--color-payment-amount);
   font-size: var(--font-size-16);
+  font-weight: var(--font-weight-regular);
+  line-height: normal;
 }
 
 .payment-dialog__code-row,
 .payment-dialog__activation-code {
   display: flex;
-  flex-wrap: wrap;
   gap: var(--space-8);
   align-items: center;
   justify-content: center;
@@ -609,40 +643,58 @@ function onDialogClose() {
 .payment-dialog__code-label {
   color: var(--color-payment-label);
   font-size: var(--font-size-16);
+  line-height: normal;
 }
 
 .payment-dialog__code-value {
   color: var(--color-payment-amount);
   font-size: var(--font-size-16);
+  line-height: normal;
+}
+
+.payment-dialog__activation-code {
+  gap: var(--space-4);
+  padding: 0 var(--space-16);
+}
+
+.payment-dialog__activation-label {
+  color: var(--color-payment-label);
+  font-size: var(--font-size-14);
+}
+
+.payment-dialog__activation-value {
+  color: var(--color-payment-amount);
+  font-size: var(--font-size-14);
 }
 
 .payment-dialog__copy-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 
-.payment-dialog__copy-btn img,
-.payment-dialog__copy-btn--inline img {
+.payment-dialog__copy-btn img {
+  display: block;
   width: 18px;
   height: 18px;
 }
 
 .payment-dialog__divider {
-  height: var(--border-width-hairline);
+  flex-shrink: 0;
+  height: 0.5px;
   background: var(--color-border-subtle);
 }
 
 .payment-dialog__activation-scroll {
   flex: 1;
   min-height: 0;
-  max-height: 420px;
+  padding: 0 var(--space-16) var(--space-16);
   overflow-y: auto;
 }
 
@@ -655,22 +707,36 @@ function onDialogClose() {
   text-align: center;
 }
 
-.payment-dialog__activation-title {
+.payment-dialog__activation-heading {
   margin: 0;
   color: var(--color-payment-amount);
   font-size: var(--font-size-14);
+  font-weight: 700;
   line-height: 26px;
-  white-space: pre-wrap;
+}
+
+.payment-dialog__activation-body {
+  margin: 0;
+  color: var(--color-payment-amount);
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: 26px;
 }
 
 .payment-dialog__activation-image {
+  display: block;
   width: 100%;
-  border-radius: var(--radius-4);
 }
 
 .payment-dialog__footer {
   display: flex;
+  flex-shrink: 0;
   gap: var(--space-16);
+  padding: var(--space-16);
+}
+
+.payment-dialog__footer--spacer {
+  height: 86px;
   padding: var(--space-16);
 }
 
@@ -680,7 +746,8 @@ function onDialogClose() {
   border: 0;
   border-radius: var(--radius-4);
   font-size: var(--font-size-16);
-  font-weight: var(--font-weight-semibold);
+  font-weight: 700;
+  line-height: 22px;
   cursor: pointer;
 }
 
@@ -694,7 +761,7 @@ function onDialogClose() {
 }
 
 .payment-dialog__btn--secondary {
-  background: var(--color-payment-secondary-btn);
+  background: #39404d;
   color: var(--color-payment-amount);
 }
 
@@ -709,6 +776,7 @@ function onDialogClose() {
 .payment-dialog.el-dialog {
   display: flex;
   flex-direction: column;
+  height: 594px;
   margin: 0 !important;
   overflow: hidden;
   background: var(--color-payment-surface);
@@ -746,18 +814,9 @@ function onDialogClose() {
   transform: translateY(-50%);
 }
 
-.payment-dialog--bottom .payment-dialog__body,
-.payment-dialog--center .payment-dialog__body {
-  max-height: min(460px, 62vh);
-  overflow-y: auto;
-}
-
-.payment-dialog--center .payment-dialog__activation-scroll {
-  max-height: 360px;
-}
-
 .v-modal {
   z-index: calc(var(--z-payment) - 1) !important;
+  background: rgba(0, 0, 0, 0.6) !important;
 }
 
 .payment-dialog.el-dialog__wrapper {

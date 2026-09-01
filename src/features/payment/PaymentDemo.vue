@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { Message } from 'element-ui'
 import PaymentDialog from './components/PaymentDialog.vue'
 import { paymentCopy } from './data/copy'
@@ -11,6 +11,7 @@ import type {
 } from './data/types'
 import { usePayment } from './state/usePayment'
 import { getDeviceType } from '@/shared/utils/viewport'
+import landingHero from './assets/landing-hero.png'
 
 const props = defineProps<{
   viewportWidth: number
@@ -33,9 +34,8 @@ const {
   close: closePayment,
   selectMethod,
   submitPay,
-  retryPay,
+  goBack,
   openActivation,
-  backFromActivation,
 } = usePayment({
   order: () => paymentOrder.value,
   debug: () => paymentDebugRef.value,
@@ -56,8 +56,7 @@ watch(
   },
 )
 
-function onCopyCode() {
-  const text = paymentOrder.value.activationCode
+function onCopyText(text: string) {
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text).then(() => {
       Message.success(paymentCopy.copySuccess)
@@ -70,16 +69,13 @@ function onCopyCode() {
 
 <template>
   <div class="payment-demo">
-    <main class="payment-demo__hero">
-      <p class="payment-demo__kicker">Figma 760:2674</p>
-      <h1 class="payment-demo__title">支付弹窗流程 Demo</h1>
-      <p class="payment-demo__desc">
-        Phone 底部弹窗 · Pad 居中弹窗 · 同一组件通过 placement 切换
-      </p>
-      <el-button type="primary" size="medium" @click="openPayment">
-        {{ paymentCopy.payNow }}
-      </el-button>
-    </main>
+    <img class="payment-demo__bg" :src="landingHero" alt="" />
+    <header class="payment-demo__top">
+      <button type="button" class="payment-demo__login">{{ paymentCopy.login }}</button>
+    </header>
+    <button type="button" class="payment-demo__buy" @click="openPayment">
+      {{ paymentCopy.payNow }}
+    </button>
 
     <PaymentDialog
       :visible="paymentVisible"
@@ -88,54 +84,65 @@ function onCopyCode() {
       :method="paymentMethod"
       :order="paymentOrder"
       @close="closePayment"
+      @back="goBack"
       @select-method="selectMethod"
       @submit-pay="submitPay"
-      @retry-pay="retryPay"
       @open-activation="openActivation"
-      @back-from-activation="backFromActivation"
-      @copy-code="onCopyCode"
+      @copy-text="onCopyText"
     />
   </div>
 </template>
 
 <style scoped>
 .payment-demo {
+  position: relative;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(56, 110, 254, 0.22), transparent 70%),
-    var(--color-bg-page);
+  overflow: hidden;
+  background: #000;
 }
 
-.payment-demo__hero {
+.payment-demo__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.payment-demo__top {
+  position: absolute;
+  top: var(--safe-top);
+  right: 0;
+  z-index: var(--z-content);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100%;
-  padding: calc(var(--space-32) + var(--safe-top)) var(--page-padding)
-    calc(var(--space-32) + var(--safe-bottom));
-  text-align: center;
+  justify-content: flex-end;
+  padding: var(--space-16);
 }
 
-.payment-demo__kicker {
-  margin: 0 0 var(--space-8);
-  color: var(--color-accent-strong);
-  font-size: var(--font-size-13);
-  letter-spacing: 0.06em;
-}
-
-.payment-demo__title {
-  margin: 0 0 var(--space-12);
-  font-size: clamp(24px, 6vw, var(--font-size-32));
-  font-weight: var(--font-weight-semibold);
-}
-
-.payment-demo__desc {
-  max-width: 320px;
-  margin: 0 0 var(--space-24);
-  color: var(--color-text-secondary);
+.payment-demo__login {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-payment-amount);
   font-size: var(--font-size-14);
-  line-height: var(--line-height-normal);
+  cursor: pointer;
+}
+
+.payment-demo__buy {
+  position: absolute;
+  right: var(--space-16);
+  bottom: calc(var(--space-32) + var(--safe-bottom));
+  z-index: var(--z-content);
+  height: 40px;
+  padding: 0 var(--space-16);
+  border: 0;
+  border-radius: var(--radius-4);
+  background: var(--color-payment-primary);
+  color: var(--color-payment-amount);
+  font-size: var(--font-size-14);
+  font-weight: 700;
+  cursor: pointer;
 }
 </style>

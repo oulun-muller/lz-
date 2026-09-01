@@ -27,6 +27,7 @@ const paymentSteps: Array<PaymentStep | null> = [
   'confirm',
   'qrcode',
   'loading',
+  'allocating',
   'success',
   'failure',
   'activation',
