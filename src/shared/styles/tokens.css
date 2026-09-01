@@ -1,0 +1,78 @@
+:root {
+  /* Color */
+  --color-bg-page: #000000;
+  --color-surface-default: #2a2a2c;
+  --color-surface-elevated: #323235;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.72);
+  --color-text-tertiary: #f5f5f57a;
+  --color-border-subtle: rgba(255, 255, 255, 0.12);
+  --color-accent: #386efe;
+  --color-accent-strong: #4d80ff;
+
+  /* Typography */
+  --font-family: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC',
+    'Source Han Sans SC', 'Hiragino Sans GB', sans-serif;
+  --font-size-12: 12px;
+  --font-size-13: 13px;
+  --font-size-14: 14px;
+  --font-size-16: 16px;
+  --font-size-20: 20px;
+  --font-size-24: 24px;
+  --font-size-32: 32px;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --line-height-normal: 1.5;
+
+  /* Spacing */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --page-padding: 16px;
+
+  /* Radius */
+  --radius-4: 4px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+
+  /* Shadow */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-debug: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  /* Border */
+  --border-width-hairline: 0.5px;
+  --border-width-1: 1px;
+
+  /* Payment dialog (Figma 760:2674) */
+  --color-payment-surface: #1e232b;
+  --color-payment-amount: #eaf7ff;
+  --color-payment-label: rgba(234, 247, 255, 0.4);
+  --color-payment-detail-label: rgba(234, 247, 255, 0.6);
+  --color-payment-detail-value: rgba(234, 247, 255, 0.8);
+  --color-payment-card: rgba(57, 64, 77, 0.3);
+  --color-payment-primary: #386efe;
+  --color-payment-primary-border: #3887ff;
+  --color-payment-secondary-btn: rgba(57, 64, 77, 0.3);
+  --payment-dialog-width-pad: 600px;
+  --payment-dialog-radius: 8px;
+  --payment-dialog-shadow: 0 2px 20px rgba(13, 13, 13, 0.8);
+
+  /* Z-index */
+  --z-content: 1;
+  --z-debug: 200;
+  --z-payment: 350;
+
+  /* Breakpoints (reference; used in JS) */
+  --bp-phone: 767px;
+  --bp-pad: 1023px;
+
+  /* Safe area */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}

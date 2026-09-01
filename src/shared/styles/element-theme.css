@@ -1,0 +1,55 @@
+.el-button {
+  font-family: var(--font-family);
+}
+
+.el-button--primary {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #1a140c;
+}
+
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-color: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: #1a140c;
+}
+
+.el-button--default {
+  background-color: var(--color-surface-default);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.el-tag {
+  background-color: var(--color-surface-default);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.el-radio-button__inner {
+  background-color: var(--color-surface-default);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-secondary);
+}
+
+.el-radio-button__orig-radio:checked + .el-radio-button__inner {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #1a140c;
+  box-shadow: none;
+}
+
+.el-empty__description p {
+  color: var(--color-text-tertiary);
+}
+
+.el-tooltip__popper {
+  font-family: var(--font-family);
+}
+
+.el-message {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-border-subtle);
+  min-width: 240px;
+}
