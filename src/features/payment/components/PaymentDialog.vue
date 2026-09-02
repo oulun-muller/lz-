@@ -501,14 +501,14 @@ function onDialogClose() {
   color: var(--color-payment-label);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
-  line-height: normal;
+  line-height: var(--payment-label-line);
 }
 
 .payment-dialog__amount {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  min-height: var(--payment-amount-line);
+  height: var(--payment-amount-line);
   margin: 0;
   color: var(--color-payment-amount);
   line-height: 1;
