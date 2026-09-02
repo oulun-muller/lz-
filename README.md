@@ -21,6 +21,19 @@ npm run dev
 - 或 Debug 面板 → **打开支付弹窗**
 - 切换预览宽度 412 / 800 验证 Phone / Pad 布局
 
+## GitHub Pages
+
+线上预览：<https://oulun-muller.github.io/lz-Mobile-payment-popup/>
+
+Pages 通过 GitHub Actions 构建 `dist/` 后发布，**不要**把仓库根目录的源码直接当作 Pages 目录（浏览器无法运行 `/src/main.ts`）。
+
+本地模拟 Pages 路径：
+
+```bash
+BASE_PATH=/lz-Mobile-payment-popup/ npm run build
+npx vite preview --base /lz-Mobile-payment-popup/
+```
+
 ## 目录
 
 ```
