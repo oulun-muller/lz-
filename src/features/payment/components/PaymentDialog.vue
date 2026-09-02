@@ -520,6 +520,7 @@ function onDialogClose() {
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-tight);
+  text-box: trim-both cap text;
 }
 
 .payment-dialog__amount {
@@ -535,12 +536,14 @@ function onDialogClose() {
   font-size: var(--font-size-24);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
+  text-box: trim-both cap text;
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-tight);
+  text-box: trim-both cap text;
 }
 
 .payment-dialog__detail-card {
