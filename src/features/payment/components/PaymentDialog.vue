@@ -519,8 +519,7 @@ function onDialogClose() {
   color: var(--color-payment-label);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-tight);
-  text-box: trim-both cap text;
+  line-height: var(--payment-label-line);
 }
 
 .payment-dialog__amount {
@@ -529,21 +528,19 @@ function onDialogClose() {
   justify-content: center;
   margin: 0;
   color: var(--color-payment-amount);
-  line-height: var(--line-height-tight);
+  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
   font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-tight);
-  text-box: trim-both cap text;
+  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
   font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-tight);
-  text-box: trim-both cap text;
+  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__detail-card {

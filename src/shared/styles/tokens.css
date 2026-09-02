@@ -24,7 +24,6 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --line-height-normal: 1.5;
-  --line-height-tight: 1;
 
   /* Spacing */
   --space-4: 4px;
@@ -85,6 +84,8 @@
   --payment-qr-size: 140px;
   --payment-qr-frame: 164px;
   --payment-qr-border: 2px;
+  --payment-amount-line: 48px;
+  --payment-label-line: 21px;
 
   /* Z-index */
   --z-content: 1;
