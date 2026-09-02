@@ -519,27 +519,28 @@ function onDialogClose() {
   color: var(--color-payment-label);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
-  line-height: var(--payment-label-line);
+  line-height: var(--line-height-tight);
 }
 
 .payment-dialog__amount {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: center;
-  height: var(--payment-amount-line);
   margin: 0;
   color: var(--color-payment-amount);
-  line-height: 1;
+  line-height: var(--line-height-tight);
 }
 
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
 }
 
 .payment-dialog__detail-card {
