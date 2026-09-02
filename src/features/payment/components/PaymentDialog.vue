@@ -475,6 +475,12 @@ function onDialogClose() {
   overflow: hidden;
 }
 
+.payment-dialog__body.is-qrcode {
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: center;
+}
+
 .payment-dialog__body.is-activation {
   gap: var(--space-24);
   padding: var(--space-24) 0 0;
@@ -499,6 +505,10 @@ function onDialogClose() {
 }
 
 .payment-dialog__amount {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: var(--payment-amount-line);
   margin: 0;
   color: var(--color-payment-amount);
   line-height: 1;
@@ -638,22 +648,25 @@ function onDialogClose() {
 
 .payment-dialog__qr-wrap {
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  padding: var(--space-12);
-  border: 2px solid var(--color-border-subtle);
+  width: var(--payment-qr-frame);
+  height: var(--payment-qr-frame);
+  padding: calc((var(--payment-qr-frame) - var(--payment-qr-size) - var(--payment-qr-border) * 2) / 2);
+  border: var(--payment-qr-border) solid var(--color-border-subtle);
 }
 
 .payment-dialog__qr {
   display: block;
-  width: 140px;
-  height: 140px;
+  width: var(--payment-qr-size);
+  height: var(--payment-qr-size);
   object-fit: cover;
 }
 
 .payment-dialog__qr-hint {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-8);
   align-items: center;
   justify-content: center;
@@ -662,6 +675,7 @@ function onDialogClose() {
   font-size: var(--font-size-14);
   line-height: normal;
   text-align: center;
+  white-space: nowrap;
 }
 
 .payment-dialog__qr-brand {
