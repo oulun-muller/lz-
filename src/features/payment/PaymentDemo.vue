@@ -62,15 +62,47 @@ onMounted(() => {
   img.src = qrCodeImage
 })
 
-const toastVisible = ref(false)
-let toastTimer = 0
+const TOAST_DURATION_MS = 2000
+const TOAST_PUSH_MS = 220
+const TOAST_STACK_MAX = 2
+
+const toasts = ref<Array<{ id: number }>>([])
+let toastSeq = 0
+const toastTimers = new Map<number, number>()
+
+function clearToastTimer(id: number) {
+  const timer = toastTimers.get(id)
+  if (timer) {
+    window.clearTimeout(timer)
+    toastTimers.delete(id)
+  }
+}
+
+function removeToast(id: number) {
+  clearToastTimer(id)
+  toasts.value = toasts.value.filter((item) => item.id !== id)
+}
 
 function showCopyToast() {
-  toastVisible.value = true
-  window.clearTimeout(toastTimer)
-  toastTimer = window.setTimeout(() => {
-    toastVisible.value = false
-  }, 2000)
+  const previous = toasts.value[0]
+  const id = ++toastSeq
+  const next = [{ id }, ...toasts.value]
+  const dropped = next.slice(TOAST_STACK_MAX)
+  toasts.value = next.slice(0, TOAST_STACK_MAX)
+  dropped.forEach((item) => clearToastTimer(item.id))
+
+  if (previous && toasts.value.some((item) => item.id === previous.id)) {
+    clearToastTimer(previous.id)
+    toastTimers.set(
+      previous.id,
+      window.setTimeout(() => removeToast(previous.id), TOAST_PUSH_MS + 80),
+    )
+  }
+
+  toastTimers.set(
+    id,
+    window.setTimeout(() => removeToast(id), TOAST_DURATION_MS),
+  )
 }
 
 function onCopyText(text: string) {
@@ -83,7 +115,8 @@ function onCopyText(text: string) {
 }
 
 onBeforeUnmount(() => {
-  window.clearTimeout(toastTimer)
+  toastTimers.forEach((timer) => window.clearTimeout(timer))
+  toastTimers.clear()
 })
 </script>
 
@@ -111,12 +144,12 @@ onBeforeUnmount(() => {
       @copy-text="onCopyText"
     />
 
-    <transition name="payment-toast">
-      <div v-if="toastVisible" class="payment-toast" role="status">
+    <transition-group name="payment-toast" tag="div" class="payment-toast-stack">
+      <div v-for="toast in toasts" :key="toast.id" class="payment-toast" role="status">
         <img class="payment-toast__icon" :src="iconToastSuccess" alt="" />
         <span class="payment-toast__text">{{ paymentCopy.copySuccess }}</span>
       </div>
-    </transition>
+    </transition-group>
   </div>
 </template>
 
@@ -173,20 +206,28 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.payment-toast {
+.payment-toast-stack {
   position: absolute;
   top: var(--payment-toast-top);
   left: 50%;
   z-index: calc(var(--z-payment) + 1);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--payment-toast-stack-gap);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.payment-toast {
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
   height: var(--payment-toast-height);
   padding: var(--payment-toast-pad-y) var(--space-16);
   border: var(--border-width-1) solid var(--color-payment-toast-border);
   background: var(--color-payment-toast);
   box-shadow: var(--payment-toast-shadow);
-  transform: translateX(-50%);
-  pointer-events: none;
 }
 
 .payment-toast__icon {
@@ -205,11 +246,22 @@ onBeforeUnmount(() => {
 
 .payment-toast-enter-active,
 .payment-toast-leave-active {
-  transition: opacity 180ms ease;
+  transition:
+    opacity var(--payment-toast-push) ease,
+    transform var(--payment-toast-push) ease;
 }
 
-.payment-toast-enter,
+.payment-toast-move {
+  transition: transform var(--payment-toast-push) ease;
+}
+
+.payment-toast-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 .payment-toast-leave-to {
   opacity: 0;
+  transform: translateY(12px);
 }
 </style>

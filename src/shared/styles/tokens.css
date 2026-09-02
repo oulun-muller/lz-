@@ -83,6 +83,9 @@
   --payment-toast-top: 120px;
   --payment-toast-height: 40px;
   --payment-toast-pad-y: 7px;
+  --payment-toast-duration: 2000ms;
+  --payment-toast-push: 220ms;
+  --payment-toast-stack-gap: 8px;
   --payment-qr-size: 140px;
   --payment-qr-frame: 164px;
   --payment-qr-border: 2px;
