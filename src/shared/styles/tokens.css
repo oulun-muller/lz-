@@ -86,7 +86,8 @@
   --payment-qr-size: 140px;
   --payment-qr-frame: 164px;
   --payment-qr-border: 2px;
-  --payment-amount-line: 48px;
+  --payment-amount-line: 38px;
+  --payment-amount-symbol-leading: 1.4;
   --payment-label-line: 21px;
 
   /* Z-index */

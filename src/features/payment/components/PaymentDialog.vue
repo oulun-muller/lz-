@@ -185,8 +185,7 @@ function onDialogClose() {
         <div class="payment-dialog__amount-block">
           <p class="payment-dialog__amount-label">{{ paymentCopy.amountLabel }}</p>
           <p class="payment-dialog__amount">
-            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span>
-            <span class="payment-dialog__amount-value">{{ order.amount }}</span>
+            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span><span class="payment-dialog__amount-value">{{ order.amount }}</span>
           </p>
         </div>
 
@@ -250,8 +249,7 @@ function onDialogClose() {
         <div class="payment-dialog__amount-block">
           <p class="payment-dialog__amount-label">{{ paymentCopy.amountLabel }}</p>
           <p class="payment-dialog__amount">
-            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span>
-            <span class="payment-dialog__amount-value">{{ order.amount }}</span>
+            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span><span class="payment-dialog__amount-value">{{ order.amount }}</span>
           </p>
         </div>
         <div class="payment-dialog__qr-block">
@@ -523,20 +521,26 @@ function onDialogClose() {
 }
 
 .payment-dialog__amount {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-end;
+  justify-content: center;
   margin: 0;
   color: var(--color-payment-amount);
   font-family: var(--font-family-number);
-  line-height: var(--payment-amount-line);
+  font-weight: var(--font-weight-medium);
 }
 
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
   font-weight: var(--font-weight-medium);
+  line-height: var(--payment-amount-symbol-leading);
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
   font-weight: var(--font-weight-medium);
+  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__detail-card {
