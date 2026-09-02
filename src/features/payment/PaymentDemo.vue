@@ -64,6 +64,7 @@ onMounted(() => {
 
 const TOAST_DURATION_MS = 2000
 const TOAST_PUSH_MS = 220
+const TOAST_DISPLACE_MS = 600
 const TOAST_STACK_MAX = 2
 
 const toasts = ref<Array<{ id: number }>>([])
@@ -95,7 +96,7 @@ function showCopyToast() {
     clearToastTimer(previous.id)
     toastTimers.set(
       previous.id,
-      window.setTimeout(() => removeToast(previous.id), TOAST_PUSH_MS + 80),
+      window.setTimeout(() => removeToast(previous.id), TOAST_DISPLACE_MS),
     )
   }
 
