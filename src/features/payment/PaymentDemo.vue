@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import PaymentDialog from './components/PaymentDialog.vue'
 import { paymentCopy } from './data/copy'
 import { defaultPaymentOrder } from './data/mock'
@@ -11,6 +11,7 @@ import type {
 import { usePayment } from './state/usePayment'
 import { getPaymentPlacement } from '@/shared/utils/viewport'
 import landingHero from './assets/landing-hero.png'
+import qrCodeImage from './assets/mock-qrcode.png'
 import iconToastSuccess from './assets/icon-toast-success.svg'
 
 const props = defineProps<{
@@ -55,6 +56,11 @@ watch(
     }
   },
 )
+
+onMounted(() => {
+  const img = new Image()
+  img.src = qrCodeImage
+})
 
 const toastVisible = ref(false)
 let toastTimer = 0

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { paymentCopy } from '../data/copy'
-import { activationSteps, qrCodeImage } from '../data/mock'
 import type {
+  ActivationStep,
   PaymentMethod,
   PaymentOrder,
   PaymentPlacement,
   PaymentStep,
 } from '../data/types'
+import qrCodeImage from '../assets/mock-qrcode.png'
 import iconAlipay from '../assets/icon-alipay.svg'
 import iconBack from '../assets/icon-back.svg'
 import iconCaution from '../assets/icon-caution.svg'
@@ -99,9 +100,20 @@ function bindActivationScroll() {
   syncActivationThumb()
 }
 
+const activationSteps = ref<ActivationStep[]>([])
+
+async function ensureActivationSteps() {
+  if (activationSteps.value.length) return
+  const mod = await import('../data/activation')
+  activationSteps.value = mod.activationSteps
+}
+
 watch(
   () => [props.visible, props.step] as const,
   async ([visible, step]) => {
+    if (visible && (step === 'activation' || step === 'success')) {
+      await ensureActivationSteps()
+    }
     await nextTick()
     if (visible && step === 'activation') {
       bindActivationScroll()
@@ -244,7 +256,13 @@ function onDialogClose() {
         </div>
         <div class="payment-dialog__qr-block">
           <div class="payment-dialog__qr-wrap">
-            <img class="payment-dialog__qr" :src="qrCodeImage" alt="" />
+            <img
+              class="payment-dialog__qr"
+              :src="qrCodeImage"
+              width="140"
+              height="140"
+              alt=""
+            />
           </div>
           <p class="payment-dialog__qr-hint">
             <span>{{ paymentCopy.qrHintPrefix }}</span>
