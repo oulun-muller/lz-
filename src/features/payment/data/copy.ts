@@ -20,6 +20,7 @@ export const paymentCopy = {
   copyCode: '复制激活码',
   copyOrder: '复制订单号',
   copySuccess: '复制成功',
+  copyFailed: '复制失败',
   viewActivation: '查看激活方式',
   activationStep1Heading: '步骤1',
   activationStep1Body: '下载steam',

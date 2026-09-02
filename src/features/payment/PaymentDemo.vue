@@ -154,11 +154,40 @@ function showCopyToast() {
   )
 }
 
-function onCopyText(text: string) {
-  showCopyToast()
-  if (text && navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text).catch(() => {})
+function copyWithFallback(text: string): boolean {
+  const area = document.createElement('textarea')
+  area.value = text
+  area.setAttribute('readonly', '')
+  area.style.position = 'fixed'
+  area.style.left = '-9999px'
+  document.body.appendChild(area)
+  area.select()
+  let ok = false
+  try {
+    ok = document.execCommand('copy')
+  } catch {
+    ok = false
   }
+  document.body.removeChild(area)
+  return ok
+}
+
+function onCopyText(text: string) {
+  if (!text) return
+
+  const onSuccess = () => showCopyToast()
+  const onFail = () => Message.error(paymentCopy.copyFailed)
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+      if (copyWithFallback(text)) onSuccess()
+      else onFail()
+    })
+    return
+  }
+
+  if (copyWithFallback(text)) onSuccess()
+  else onFail()
 }
 
 function onLogin() {

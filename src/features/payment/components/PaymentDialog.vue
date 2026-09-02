@@ -125,11 +125,13 @@ const successDetails = computed(() => [
         <template v-else-if="step === 'confirm'">
           <PaymentAmountBlock :order="order" />
           <div class="payment-dialog__rule" />
-          <PaymentDetailCard :details="order.details" />
-          <PaymentMethodPicker
-            :method="method"
-            @select-method="emit('select-method', $event)"
-          />
+          <div class="payment-dialog__confirm-main">
+            <PaymentDetailCard :details="order.details" />
+            <PaymentMethodPicker
+              :method="method"
+              @select-method="emit('select-method', $event)"
+            />
+          </div>
         </template>
 
         <template v-else-if="step === 'qrcode'">
@@ -255,6 +257,14 @@ const successDetails = computed(() => [
 .payment-dialog__body.is-confirm,
 .payment-dialog__body.is-success {
   padding: 0;
+}
+
+.payment-dialog__confirm-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
 }
 
 .payment-dialog__body.is-page-loading,

@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type {
   PaymentDebugState,
   PaymentMethod,
@@ -98,6 +98,10 @@ export function usePayment(options: {
       }
     },
   )
+
+  onBeforeUnmount(() => {
+    clearTimer()
+  })
 
   return {
     visible,
