@@ -344,26 +344,26 @@ function onDialogClose() {
       </template>
 
       <template v-else-if="step === 'activation'">
-        <div class="payment-dialog__activation-code">
-          <span class="payment-dialog__activation-label">{{ paymentCopy.activationCodeLabel }}</span>
-          <span class="payment-dialog__code-group">
-            <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
-            <button
-              type="button"
-              class="payment-dialog__copy-btn"
-              :aria-label="paymentCopy.copyCode"
-              @click="emit('copy-text', order.activationCode)"
-            >
-              <img :src="iconCopy" alt="" />
-            </button>
-          </span>
-        </div>
-        <div class="payment-dialog__divider" />
         <div
           ref="activationScrollRef"
           class="payment-dialog__activation-scroll"
           @scroll="syncActivationThumb"
         >
+          <div class="payment-dialog__activation-code">
+            <span class="payment-dialog__activation-label">{{ paymentCopy.activationCodeLabel }}</span>
+            <span class="payment-dialog__code-group">
+              <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
+              <button
+                type="button"
+                class="payment-dialog__copy-btn"
+                :aria-label="paymentCopy.copyCode"
+                @click="emit('copy-text', order.activationCode)"
+              >
+                <img :src="iconCopy" alt="" />
+              </button>
+            </span>
+          </div>
+          <div class="payment-dialog__divider" />
           <article
             v-for="(item, index) in activationSteps"
             :key="index"
@@ -482,8 +482,8 @@ function onDialogClose() {
 }
 
 .payment-dialog__body.is-activation {
-  gap: var(--space-24);
-  padding: var(--space-24) 0 0;
+  gap: 0;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -783,6 +783,7 @@ function onDialogClose() {
 }
 
 .payment-dialog__activation-code {
+  flex-shrink: 0;
   padding: 0 var(--space-16);
 }
 
@@ -816,14 +817,19 @@ function onDialogClose() {
 
 .payment-dialog__divider {
   flex-shrink: 0;
+  width: 100%;
   height: 0.5px;
   background: var(--color-border-subtle);
 }
 
 .payment-dialog__activation-scroll {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: var(--space-24);
+  align-items: center;
   min-height: 0;
-  padding: 0 var(--space-16) var(--payment-scrollbar-pad-bottom);
+  padding: var(--space-16);
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
@@ -864,12 +870,8 @@ function onDialogClose() {
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;
-  margin-bottom: var(--space-24);
+  width: 100%;
   text-align: center;
-}
-
-.payment-dialog__activation-step:last-child {
-  margin-bottom: 0;
 }
 
 .payment-dialog__activation-heading {
