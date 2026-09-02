@@ -523,9 +523,6 @@ function onDialogClose() {
 }
 
 .payment-dialog__amount {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
   margin: 0;
   color: var(--color-payment-amount);
   line-height: var(--payment-amount-line);
@@ -534,13 +531,11 @@ function onDialogClose() {
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
   font-weight: var(--font-weight-medium);
-  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
   font-weight: var(--font-weight-medium);
-  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__detail-card {
