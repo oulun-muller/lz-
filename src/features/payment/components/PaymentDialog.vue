@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { paymentCopy } from '../data/copy'
-import { activationSteps, qrCodeImage } from '../data/mock'
 import type {
+  ActivationStep,
   PaymentMethod,
   PaymentOrder,
   PaymentPlacement,
   PaymentStep,
 } from '../data/types'
+import qrCodeImage from '../assets/mock-qrcode.png'
 import iconAlipay from '../assets/icon-alipay.svg'
 import iconBack from '../assets/icon-back.svg'
 import iconCaution from '../assets/icon-caution.svg'
@@ -49,6 +50,83 @@ const showBack = computed(() =>
 const showDualActions = computed(() => props.step === 'success')
 const showPayAction = computed(() => props.step === 'confirm')
 const showBackAction = computed(() => props.step === 'failure')
+const showFooterSpacer = computed(() =>
+  ['qrcode', 'loading', 'allocating'].includes(props.step),
+)
+
+const activationScrollRef = ref<HTMLElement | null>(null)
+const activationTrackRef = ref<HTMLElement | null>(null)
+const activationThumbHeight = ref(80)
+const activationThumbOffset = ref(0)
+
+let boundActivationScroller: HTMLElement | null = null
+let activationResizeObserver: ResizeObserver | null = null
+
+function syncActivationThumb() {
+  const scroller = boundActivationScroller || activationScrollRef.value
+  const track = activationTrackRef.value
+  if (!scroller || !track) return
+
+  const { scrollTop, scrollHeight, clientHeight } = scroller
+  const styles = window.getComputedStyle(track)
+  const padTop = Number.parseFloat(styles.paddingTop) || 0
+  const padBottom = Number.parseFloat(styles.paddingBottom) || 0
+  const trackInner = Math.max(track.clientHeight - padTop - padBottom, 1)
+  const proportional = (clientHeight / Math.max(scrollHeight, 1)) * trackInner
+  const thumbHeight = Math.min(80, Math.max(32, proportional))
+  const maxOffset = Math.max(trackInner - thumbHeight, 0)
+  const maxScroll = Math.max(scrollHeight - clientHeight, 0)
+  const offset = maxScroll === 0 ? 0 : (scrollTop / maxScroll) * maxOffset
+
+  activationThumbHeight.value = thumbHeight
+  activationThumbOffset.value = offset
+}
+
+function unbindActivationScroll() {
+  boundActivationScroller?.removeEventListener('scroll', syncActivationThumb)
+  boundActivationScroller = null
+  activationResizeObserver?.disconnect()
+  activationResizeObserver = null
+}
+
+function bindActivationScroll() {
+  unbindActivationScroll()
+  const scroller = activationScrollRef.value
+  if (!scroller) return
+  boundActivationScroller = scroller
+  scroller.addEventListener('scroll', syncActivationThumb, { passive: true })
+  activationResizeObserver = new ResizeObserver(() => syncActivationThumb())
+  activationResizeObserver.observe(scroller)
+  syncActivationThumb()
+}
+
+const activationSteps = ref<ActivationStep[]>([])
+
+async function ensureActivationSteps() {
+  if (activationSteps.value.length) return
+  const mod = await import('../data/activation')
+  activationSteps.value = mod.activationSteps
+}
+
+watch(
+  () => [props.visible, props.step] as const,
+  async ([visible, step]) => {
+    if (visible && (step === 'activation' || step === 'success')) {
+      await ensureActivationSteps()
+    }
+    await nextTick()
+    if (visible && step === 'activation') {
+      bindActivationScroll()
+    } else {
+      unbindActivationScroll()
+    }
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  unbindActivationScroll()
+})
 
 const successDetails = computed(() => [
   ...props.order.details,
@@ -66,6 +144,10 @@ function onDialogClose() {
 </script>
 
 <template>
+  <div
+    class="payment-layer"
+    :class="placement === 'bottom' ? 'is-sheet' : 'is-modal'"
+  >
   <el-dialog
     :visible="visible"
     :custom-class="dialogClass"
@@ -103,8 +185,7 @@ function onDialogClose() {
         <div class="payment-dialog__amount-block">
           <p class="payment-dialog__amount-label">{{ paymentCopy.amountLabel }}</p>
           <p class="payment-dialog__amount">
-            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span>
-            <span class="payment-dialog__amount-value">{{ order.amount }}</span>
+            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span><span class="payment-dialog__amount-value">{{ order.amount }}</span>
           </p>
         </div>
 
@@ -168,13 +249,18 @@ function onDialogClose() {
         <div class="payment-dialog__amount-block">
           <p class="payment-dialog__amount-label">{{ paymentCopy.amountLabel }}</p>
           <p class="payment-dialog__amount">
-            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span>
-            <span class="payment-dialog__amount-value">{{ order.amount }}</span>
+            <span class="payment-dialog__amount-symbol">{{ order.currencySymbol }}</span><span class="payment-dialog__amount-value">{{ order.amount }}</span>
           </p>
         </div>
         <div class="payment-dialog__qr-block">
           <div class="payment-dialog__qr-wrap">
-            <img class="payment-dialog__qr" :src="qrCodeImage" alt="" />
+            <img
+              class="payment-dialog__qr"
+              :src="qrCodeImage"
+              width="140"
+              height="140"
+              alt=""
+            />
           </div>
           <p class="payment-dialog__qr-hint">
             <span>{{ paymentCopy.qrHintPrefix }}</span>
@@ -218,15 +304,17 @@ function onDialogClose() {
           <p class="payment-dialog__success-title">{{ paymentCopy.activationGenerated }}</p>
           <div class="payment-dialog__code-row">
             <span class="payment-dialog__code-label">{{ paymentCopy.activationCodeLabel }}</span>
-            <span class="payment-dialog__code-value">{{ order.activationCode }}</span>
-            <button
-              type="button"
-              class="payment-dialog__copy-btn"
-              :aria-label="paymentCopy.copyCode"
-              @click="emit('copy-text', order.activationCode)"
-            >
-              <img :src="iconCopy" alt="" />
-            </button>
+            <span class="payment-dialog__code-group">
+              <span class="payment-dialog__code-value">{{ order.activationCode }}</span>
+              <button
+                type="button"
+                class="payment-dialog__copy-btn"
+                :aria-label="paymentCopy.copyCode"
+                @click="emit('copy-text', order.activationCode)"
+              >
+                <img :src="iconCopy" alt="" />
+              </button>
+            </span>
           </div>
         </div>
         <dl class="payment-dialog__detail-card">
@@ -243,16 +331,21 @@ function onDialogClose() {
                 :src="iconSteam"
                 alt=""
               />
-              <span>{{ row.value }}</span>
-              <button
-                v-if="row.copyable"
-                type="button"
-                class="payment-dialog__copy-btn payment-dialog__copy-btn--inline"
-                :aria-label="paymentCopy.copyOrder"
-                @click="emit('copy-text', row.value)"
+              <span
+                class="payment-dialog__detail-value"
+                :class="{ 'is-copyable': row.copyable }"
               >
-                <img :src="iconCopy" alt="" />
-              </button>
+                <span>{{ row.value }}</span>
+                <button
+                  v-if="row.copyable"
+                  type="button"
+                  class="payment-dialog__copy-btn payment-dialog__copy-btn--inline"
+                  :aria-label="paymentCopy.copyOrder"
+                  @click="emit('copy-text', row.value)"
+                >
+                  <img :src="iconCopy" alt="" />
+                </button>
+              </span>
             </dd>
           </div>
         </dl>
@@ -267,20 +360,26 @@ function onDialogClose() {
       </template>
 
       <template v-else-if="step === 'activation'">
-        <div class="payment-dialog__activation-code">
-          <span class="payment-dialog__activation-label">{{ paymentCopy.activationCodeLabel }}</span>
-          <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
-          <button
-            type="button"
-            class="payment-dialog__copy-btn"
-            :aria-label="paymentCopy.copyCode"
-            @click="emit('copy-text', order.activationCode)"
-          >
-            <img :src="iconCopy" alt="" />
-          </button>
-        </div>
-        <div class="payment-dialog__divider" />
-        <div class="payment-dialog__activation-scroll">
+        <div
+          ref="activationScrollRef"
+          class="payment-dialog__activation-scroll"
+          @scroll="syncActivationThumb"
+        >
+          <div class="payment-dialog__activation-code">
+            <span class="payment-dialog__activation-label">{{ paymentCopy.activationCodeLabel }}</span>
+            <span class="payment-dialog__code-group">
+              <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
+              <button
+                type="button"
+                class="payment-dialog__copy-btn"
+                :aria-label="paymentCopy.copyCode"
+                @click="emit('copy-text', order.activationCode)"
+              >
+                <img :src="iconCopy" alt="" />
+              </button>
+            </span>
+          </div>
+          <div class="payment-dialog__divider" />
           <article
             v-for="(item, index) in activationSteps"
             :key="index"
@@ -331,8 +430,23 @@ function onDialogClose() {
         {{ paymentCopy.back }}
       </button>
     </footer>
-    <div v-else class="payment-dialog__footer payment-dialog__footer--spacer" />
+    <div v-else-if="showFooterSpacer" class="payment-dialog__footer payment-dialog__footer--spacer" />
+    <div
+      v-if="step === 'activation'"
+      ref="activationTrackRef"
+      class="payment-dialog__scrollbar"
+      aria-hidden="true"
+    >
+      <div
+        class="payment-dialog__scrollbar-thumb"
+        :style="{
+          height: `${activationThumbHeight}px`,
+          transform: `translateY(${activationThumbOffset}px)`,
+        }"
+      />
+    </div>
   </el-dialog>
+  </div>
 </template>
 
 <style scoped>
@@ -377,8 +491,14 @@ function onDialogClose() {
   overflow: hidden;
 }
 
+.payment-dialog__body.is-qrcode {
+  gap: var(--space-16);
+  align-items: center;
+  justify-content: center;
+}
+
 .payment-dialog__body.is-activation {
-  gap: var(--space-24);
+  gap: 0;
   padding: 0;
   overflow: hidden;
 }
@@ -386,7 +506,7 @@ function onDialogClose() {
 .payment-dialog__amount-block {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-4);
   align-items: center;
   padding-bottom: var(--space-16);
   text-align: center;
@@ -397,23 +517,30 @@ function onDialogClose() {
   color: var(--color-payment-label);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
-  line-height: normal;
+  line-height: var(--payment-label-line);
 }
 
 .payment-dialog__amount {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-end;
+  justify-content: center;
   margin: 0;
   color: var(--color-payment-amount);
-  line-height: 1;
+  font-family: var(--font-family-number);
+  font-weight: var(--font-weight-medium);
 }
 
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--payment-amount-symbol-leading);
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--payment-amount-line);
 }
 
 .payment-dialog__detail-card {
@@ -453,7 +580,18 @@ function onDialogClose() {
   text-align: right;
 }
 
-.payment-dialog__detail-row dd span {
+.payment-dialog__detail-value {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-width: 0;
+}
+
+.payment-dialog__detail-value.is-copyable {
+  gap: var(--space-8);
+}
+
+.payment-dialog__detail-value > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -529,22 +667,25 @@ function onDialogClose() {
 
 .payment-dialog__qr-wrap {
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  padding: var(--space-12);
-  border: 2px solid var(--color-border-subtle);
+  width: var(--payment-qr-frame);
+  height: var(--payment-qr-frame);
+  padding: calc((var(--payment-qr-frame) - var(--payment-qr-size) - var(--payment-qr-border) * 2) / 2);
+  border: var(--payment-qr-border) solid var(--color-border-subtle);
 }
 
 .payment-dialog__qr {
   display: block;
-  width: 140px;
-  height: 140px;
+  width: var(--payment-qr-size);
+  height: var(--payment-qr-size);
   object-fit: cover;
 }
 
 .payment-dialog__qr-hint {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--space-8);
   align-items: center;
   justify-content: center;
@@ -553,6 +694,7 @@ function onDialogClose() {
   font-size: var(--font-size-14);
   line-height: normal;
   text-align: center;
+  white-space: nowrap;
 }
 
 .payment-dialog__qr-brand {
@@ -636,9 +778,15 @@ function onDialogClose() {
 .payment-dialog__code-row,
 .payment-dialog__activation-code {
   display: flex;
-  gap: var(--space-8);
+  gap: var(--space-4);
   align-items: center;
   justify-content: center;
+}
+
+.payment-dialog__code-group {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
 }
 
 .payment-dialog__code-label {
@@ -654,7 +802,7 @@ function onDialogClose() {
 }
 
 .payment-dialog__activation-code {
-  gap: var(--space-4);
+  flex-shrink: 0;
   padding: 0 var(--space-16);
 }
 
@@ -688,15 +836,52 @@ function onDialogClose() {
 
 .payment-dialog__divider {
   flex-shrink: 0;
+  width: 100%;
   height: 0.5px;
   background: var(--color-border-subtle);
 }
 
 .payment-dialog__activation-scroll {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: var(--space-24);
+  align-items: center;
   min-height: 0;
-  padding: 0 var(--space-16) var(--space-16);
+  padding: var(--space-16);
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.payment-dialog__activation-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.payment-dialog__scrollbar {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--payment-scrollbar-gutter);
+  padding: var(--payment-scrollbar-pad-top) var(--space-4) var(--payment-scrollbar-pad-bottom);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.payment-dialog__scrollbar-thumb {
+  flex-shrink: 0;
+  width: var(--payment-scrollbar-thumb);
+  border-radius: 2px;
+  background: var(--color-payment-scrollbar);
+  will-change: transform;
 }
 
 .payment-dialog__activation-step {
@@ -704,7 +889,7 @@ function onDialogClose() {
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;
-  margin-bottom: var(--space-24);
+  width: 100%;
   text-align: center;
 }
 
@@ -747,7 +932,7 @@ function onDialogClose() {
   border: 0;
   border-radius: var(--radius-4);
   font-size: var(--font-size-16);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
   line-height: 22px;
   cursor: pointer;
 }
@@ -774,18 +959,26 @@ function onDialogClose() {
 </style>
 
 <style>
-.payment-demo .el-dialog__wrapper,
-.payment-demo .v-modal {
+.payment-layer {
   position: absolute;
   inset: 0;
+  z-index: var(--z-payment);
+  pointer-events: none;
 }
 
-.payment-demo .v-modal {
+.payment-layer .el-dialog__wrapper,
+.payment-layer .v-modal {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.payment-layer .v-modal {
   z-index: calc(var(--z-payment) - 1) !important;
   background: rgba(0, 0, 0, 0.6) !important;
 }
 
-.payment-demo .el-dialog__wrapper {
+.payment-layer .el-dialog__wrapper {
   z-index: var(--z-payment) !important;
   overflow: hidden;
 }
@@ -805,11 +998,13 @@ function onDialogClose() {
 }
 
 .payment-dialog .el-dialog__body {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 0;
   padding: 0;
+  overflow: hidden;
   color: var(--color-payment-amount);
 }
 
@@ -822,7 +1017,6 @@ function onDialogClose() {
   width: 100% !important;
   max-width: 100%;
   border-radius: var(--payment-dialog-radius) var(--payment-dialog-radius) 0 0;
-  transform: none;
 }
 
 .payment-dialog--center.el-dialog {
@@ -835,34 +1029,35 @@ function onDialogClose() {
   transform: translate(-50%, -50%);
 }
 
-.payment-demo .el-dialog__wrapper.dialog-fade-enter-active:has(.payment-dialog--bottom),
-.payment-demo .el-dialog__wrapper.dialog-fade-leave-active:has(.payment-dialog--bottom) {
-  animation: none !important;
+.payment-layer.is-sheet .el-dialog__wrapper.dialog-fade-enter-active,
+.payment-layer.is-sheet .dialog-fade-enter-active {
+  animation: payment-sheet-in var(--payment-sheet-in-duration) cubic-bezier(0.22, 1, 0.36, 1) both !important;
 }
 
-.payment-demo .el-dialog__wrapper.dialog-fade-enter-active:has(.payment-dialog--bottom) .payment-dialog--bottom {
-  animation: payment-sheet-in 280ms ease-out;
-}
-
-.payment-demo .el-dialog__wrapper.dialog-fade-leave-active:has(.payment-dialog--bottom) .payment-dialog--bottom {
-  animation: payment-sheet-out 240ms ease-in;
+.payment-layer.is-sheet .el-dialog__wrapper.dialog-fade-leave-active,
+.payment-layer.is-sheet .dialog-fade-leave-active {
+  animation: payment-sheet-out var(--payment-sheet-out-duration) cubic-bezier(0.4, 0, 1, 1) both !important;
 }
 
 @keyframes payment-sheet-in {
   from {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
+    opacity: 1;
   }
   to {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
 }
 
 @keyframes payment-sheet-out {
   from {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
   }
   to {
-    transform: translateY(100%);
+    transform: translate3d(0, 100%, 0);
+    opacity: 1;
   }
 }
 </style>

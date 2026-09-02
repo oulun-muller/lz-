@@ -62,7 +62,7 @@ const outcomes: PaymentOutcome[] = ['success', 'failure']
           {{ placement === 'bottom' ? 'bottom 底部' : 'center 居中' }}
         </el-tag>
       </p>
-      <p>形态节点：&lt; {{ PAYMENT_CENTER_MIN_WIDTH }}px 底部，≥ {{ PAYMENT_CENTER_MIN_WIDTH }}px 居中</p>
+      <p>形态节点: &lt; {{ PAYMENT_CENTER_MIN_WIDTH }}px 底部，≥ {{ PAYMENT_CENTER_MIN_WIDTH }}px 居中</p>
 
       <h4>预览宽度</h4>
       <div class="debug__chips">

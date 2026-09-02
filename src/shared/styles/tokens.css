@@ -13,6 +13,8 @@
   /* Typography */
   --font-family: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC',
     'Source Han Sans SC', 'Hiragino Sans GB', sans-serif;
+  --font-family-number: 'Roboto', 'HarmonyOS Sans', -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-size-12: 12px;
   --font-size-13: 13px;
   --font-size-14: 14px;
@@ -21,6 +23,7 @@
   --font-size-24: 24px;
   --font-size-32: 32px;
   --font-weight-regular: 400;
+  --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --line-height-normal: 1.5;
 
@@ -62,6 +65,33 @@
   --payment-dialog-width-pad: 600px;
   --payment-dialog-radius: 8px;
   --payment-dialog-shadow: 0 2px 20px rgba(13, 13, 13, 0.8);
+  --color-payment-scrollbar: rgba(255, 255, 255, 0.12);
+  --payment-scrollbar-gutter: 12px;
+  --payment-scrollbar-thumb: 4px;
+  --payment-scrollbar-thumb-max: 80px;
+  --payment-scrollbar-thumb-min: 32px;
+  --payment-scrollbar-pad-top: 12px;
+  --payment-scrollbar-pad-bottom: 32px;
+  --payment-sheet-in-duration: 400ms;
+  --payment-sheet-out-duration: 320ms;
+  --color-payment-toast: #1e242b;
+  --color-payment-toast-border: rgba(234, 247, 255, 0.1);
+  --payment-toast-shadow:
+    0 2px 3px #0d0d0d,
+    0 4px 8px rgba(13, 13, 13, 0.32),
+    0 6px 16px rgba(13, 13, 13, 0.2);
+  --payment-toast-top: 120px;
+  --payment-toast-height: 40px;
+  --payment-toast-pad-y: 7px;
+  --payment-toast-duration: 2000ms;
+  --payment-toast-push: 220ms;
+  --payment-toast-stack-gap: 8px;
+  --payment-qr-size: 140px;
+  --payment-qr-frame: 164px;
+  --payment-qr-border: 2px;
+  --payment-amount-line: 38px;
+  --payment-amount-symbol-leading: 1.4;
+  --payment-label-line: 21px;
 
   /* Z-index */
   --z-content: 1;
