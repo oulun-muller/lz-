@@ -20,6 +20,8 @@
 - 预览宽度 `< 768px`：底部弹窗（Phone），无描边。
 - 预览宽度 `>= 768px`：600px 居中弹窗（Pad），描边 `--payment-dialog-border-width` / `--color-payment-dialog-border`（Figma `0.5px` `#39404d`）。
 - 同一 `PaymentDialog`，仅 placement 不同。
+- 确认页：付款方式是明细下方的独立块（`--payment-methods-pad-y` 24px），不要再嵌进明细列表；明细与方法放在同一列容器里，避免多一段 body gap 把四行列表挤出滚动。
+- Empty / Error / Boundary / Abnormal：同一套失败兜底（手柄图 +「页面加载失败」+「刷新」），不要改回 `el-empty`。Loading 仍是转圈文案。
 
 ## 不要做
 
