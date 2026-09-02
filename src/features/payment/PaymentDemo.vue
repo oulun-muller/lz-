@@ -106,12 +106,10 @@ function showCopyToast() {
 }
 
 function onCopyText(text: string) {
-  const done = () => showCopyToast()
+  showCopyToast()
   if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(done)
-    return
+    navigator.clipboard.writeText(text).catch(() => {})
   }
-  done()
 }
 
 onBeforeUnmount(() => {
