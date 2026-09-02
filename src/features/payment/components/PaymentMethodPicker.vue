@@ -60,7 +60,7 @@ const emit = defineEmits<{
   gap: var(--space-16);
   align-items: center;
   width: 100%;
-  padding: 0 var(--space-16);
+  padding: var(--payment-methods-pad-y) var(--payment-methods-pad-x);
 }
 
 .payment-methods__label {

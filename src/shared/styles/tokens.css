@@ -81,6 +81,8 @@
   --payment-icon-btn: 48px;
   --payment-icon: 32px;
   --payment-method-height: 48px;
+  --payment-methods-pad-y: var(--space-24);
+  --payment-methods-pad-x: var(--space-16);
   --payment-detail-row-height: 48px;
   --payment-detail-line: 22px;
   --payment-code-line: 22px;

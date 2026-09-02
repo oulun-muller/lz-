@@ -126,7 +126,10 @@ const successDetails = computed(() => [
           <PaymentAmountBlock :order="order" />
           <div class="payment-dialog__rule" />
           <PaymentDetailCard :details="order.details" />
-          <PaymentMethodPicker :method="method" @select-method="emit('select-method', $event)" />
+          <PaymentMethodPicker
+            :method="method"
+            @select-method="emit('select-method', $event)"
+          />
         </template>
 
         <template v-else-if="step === 'qrcode'">
