@@ -525,6 +525,7 @@ function onDialogClose() {
 .payment-dialog__amount {
   margin: 0;
   color: var(--color-payment-amount);
+  font-family: var(--font-family-number);
   line-height: var(--payment-amount-line);
 }
 
