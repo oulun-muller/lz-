@@ -497,12 +497,12 @@ function onDialogClose() {
 
 .payment-dialog__amount-symbol {
   font-size: var(--font-size-24);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
 }
 
 .payment-dialog__amount-value {
   font-size: var(--font-size-32);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
 }
 
 .payment-dialog__detail-card {
@@ -872,7 +872,7 @@ function onDialogClose() {
   border: 0;
   border-radius: var(--radius-4);
   font-size: var(--font-size-16);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
   line-height: 22px;
   cursor: pointer;
 }

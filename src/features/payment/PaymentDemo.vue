@@ -142,7 +142,7 @@ function onCopyText(text: string) {
   background: var(--color-payment-primary);
   color: var(--color-payment-amount);
   font-size: var(--font-size-14);
-  font-weight: 700;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 </style>
