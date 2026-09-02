@@ -10,7 +10,7 @@ body,
   margin: 0;
   width: 100%;
   height: 100%;
-  background: #111113;
+  background: var(--color-bg-shell);
   color: var(--color-text-primary);
   font-family: var(--font-family);
   font-size: var(--font-size-16);

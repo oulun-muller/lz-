@@ -10,6 +10,11 @@ declare module '*.svg' {
   export default src
 }
 
+declare module '*.jpg' {
+  const src: string
+  export default src
+}
+
 declare module '*.png' {
   const src: string
   export default src
@@ -21,6 +26,7 @@ declare module 'element-ui' {
   export const Message: {
     success: (message: string) => void
     error: (message: string) => void
+    info: (message: string) => void
   }
   export default ElementUI
 }

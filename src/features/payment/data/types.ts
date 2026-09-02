@@ -13,9 +13,22 @@ export type PaymentPlacement = 'bottom' | 'center'
 
 export type PaymentOutcome = 'success' | 'failure'
 
+export type MockStatus =
+  | 'normal'
+  | 'empty'
+  | 'loading'
+  | 'error'
+  | 'longText'
+  | 'longList'
+  | 'boundary'
+  | 'abnormal'
+
+export type PageReadyState = 'ready' | 'loading' | 'error'
+
+export type DetailKey = 'game' | 'platform' | 'version' | 'language' | 'orderNo' | 'region' | 'edition' | 'note'
+
 export interface PaymentOrderDetail {
-  key: string
-  label: string
+  key: DetailKey | string
   value: string
   platformIcon?: 'steam'
   copyable?: boolean
@@ -40,6 +53,15 @@ export interface PaymentMockConfig {
   outcome: PaymentOutcome
   processingMs: number
   allocatingMs: number
+  qrWaitMs: number
+}
+
+export interface PaymentMockPayload {
+  status: MockStatus
+  pageState: PageReadyState
+  errorMessage: string
+  order: PaymentOrder
+  activationSteps: ActivationStep[]
 }
 
 export interface PaymentDebugState {

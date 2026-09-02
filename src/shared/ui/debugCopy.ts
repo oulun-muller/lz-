@@ -1,0 +1,16 @@
+export const debugCopy = {
+  open: 'Debug',
+  close: '收起 Debug',
+  viewport: '视口',
+  device: '设备',
+  breakpoint: '断点',
+  previewWidth: '预览宽度',
+  previewFill: '铺满',
+  library: '组件库',
+  libraryValue: 'Element UI',
+  resources: '资源',
+  resourcesReady: '已加载',
+  resourcesPending: '加载中',
+  mock: 'Mock 数据',
+  mockHint: '切换订单与页面状态，不接真实接口',
+} as const

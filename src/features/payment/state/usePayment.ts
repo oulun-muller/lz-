@@ -74,7 +74,7 @@ export function usePayment(options: {
     clearTimer()
     timer = setTimeout(() => {
       startProcessing()
-    }, 2200)
+    }, defaultPaymentConfig.qrWaitMs)
   }
 
   function goBack() {

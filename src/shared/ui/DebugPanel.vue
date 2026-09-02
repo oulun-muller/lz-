@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import {
-  getBreakpointLabel,
-  getDeviceType,
-  getPaymentPlacement,
-  PAYMENT_CENTER_MIN_WIDTH,
-} from '@/shared/utils/viewport'
-import { paymentCopy, paymentStepLabels } from '@/features/payment/data/copy'
+import { getBreakpointLabel, getDeviceType, PREVIEW_WIDTHS } from '@/shared/utils/viewport'
+import { debugCopy } from '@/shared/ui/debugCopy'
+import { mockStatusLabels, paymentCopy, paymentStepLabels } from '@/features/payment/data/copy'
+import { PAYMENT_CENTER_MIN_WIDTH, getPaymentPlacement } from '@/features/payment/state/placement'
 import type {
+  MockStatus,
   PaymentDebugState,
   PaymentOutcome,
   PaymentStep,
@@ -17,14 +15,16 @@ const props = defineProps<{
   viewportWidth: number
   viewportHeight: number
   previewWidth: number
+  mockStatus: MockStatus
   paymentStep: PaymentStep | null
   paymentDebug: PaymentDebugState
   paymentSteps: Array<PaymentStep | null>
-  previewWidths: readonly number[]
+  resourcesReady: boolean
 }>()
 
 const emit = defineEmits<{
   'update:preview-width': [value: number]
+  'update:mock-status': [value: MockStatus]
   'open-payment': []
   'update:payment-force-step': [value: PaymentStep | null]
   'update:wallet-installed': [value: boolean]
@@ -36,38 +36,79 @@ const device = computed(() => getDeviceType(props.viewportWidth))
 const breakpoint = computed(() => getBreakpointLabel(props.viewportWidth))
 const placement = computed(() => getPaymentPlacement(props.viewportWidth))
 const outcomes: PaymentOutcome[] = ['success', 'failure']
+const statuses: MockStatus[] = [
+  'normal',
+  'empty',
+  'loading',
+  'error',
+  'longText',
+  'longList',
+  'boundary',
+  'abnormal',
+]
 </script>
 
 <template>
   <aside class="debug" :class="{ 'is-open': open }">
     <el-button class="debug__toggle" size="small" @click="open = !open">
-      {{ open ? '收起 Debug' : 'Debug' }}
+      {{ open ? debugCopy.close : debugCopy.open }}
     </el-button>
     <div v-if="open" class="debug__body">
       <p>
-        视口
+        {{ debugCopy.viewport }}
         <el-tag size="small">{{ viewportWidth }} × {{ viewportHeight }}</el-tag>
       </p>
       <p>
-        设备
+        {{ debugCopy.device }}
         <el-tag size="small" type="info">{{ device }}</el-tag>
       </p>
       <p>
-        断点
+        {{ debugCopy.breakpoint }}
         <el-tag size="small">{{ breakpoint }}</el-tag>
       </p>
       <p>
-        弹窗布局
+        {{ paymentCopy.debugPlacement }}
         <el-tag size="small" type="warning">
-          {{ placement === 'bottom' ? 'bottom 底部' : 'center 居中' }}
+          {{
+            placement === 'bottom'
+              ? paymentCopy.debugPlacementBottom
+              : paymentCopy.debugPlacementCenter
+          }}
         </el-tag>
       </p>
-      <p>形态节点：&lt; {{ PAYMENT_CENTER_MIN_WIDTH }}px 底部，≥ {{ PAYMENT_CENTER_MIN_WIDTH }}px 居中</p>
+      <p>
+        {{ paymentCopy.debugPlacementRule }}:
+        &lt; {{ PAYMENT_CENTER_MIN_WIDTH }}px 底部，≥ {{ PAYMENT_CENTER_MIN_WIDTH }}px 居中
+      </p>
+      <p>
+        {{ debugCopy.library }}
+        <el-tag size="small" type="success">{{ debugCopy.libraryValue }}</el-tag>
+      </p>
+      <p>
+        {{ debugCopy.resources }}
+        <el-tag size="small" :type="resourcesReady ? 'success' : 'info'">
+          {{ resourcesReady ? debugCopy.resourcesReady : debugCopy.resourcesPending }}
+        </el-tag>
+      </p>
 
-      <h4>预览宽度</h4>
+      <h4>{{ debugCopy.mock }}</h4>
+      <p>{{ debugCopy.mockHint }}</p>
       <div class="debug__chips">
         <el-button
-          v-for="width in previewWidths"
+          v-for="status in statuses"
+          :key="status"
+          size="small"
+          :type="mockStatus === status ? 'primary' : 'default'"
+          @click="emit('update:mock-status', status)"
+        >
+          {{ mockStatusLabels[status] }}
+        </el-button>
+      </div>
+
+      <h4>{{ debugCopy.previewWidth }}</h4>
+      <div class="debug__chips">
+        <el-button
+          v-for="width in PREVIEW_WIDTHS"
           :key="width"
           size="small"
           :type="previewWidth === width ? 'primary' : 'default'"
@@ -80,7 +121,7 @@ const outcomes: PaymentOutcome[] = ['success', 'failure']
           :type="previewWidth === 0 ? 'primary' : 'default'"
           @click="emit('update:preview-width', 0)"
         >
-          铺满
+          {{ debugCopy.previewFill }}
         </el-button>
       </div>
 
@@ -100,14 +141,14 @@ const outcomes: PaymentOutcome[] = ['success', 'failure']
           :type="paymentDebug.forceStep === step ? 'primary' : 'default'"
           @click="emit('update:payment-force-step', step)"
         >
-          {{ step ? paymentStepLabels[step] : 'Flow' }}
+          {{ step ? paymentStepLabels[step] : paymentCopy.debugFlow }}
         </el-button>
       </div>
       <p>{{ paymentCopy.debugWallet }}</p>
       <el-switch
         :value="paymentDebug.walletInstalled"
-        active-text="已安装"
-        inactive-text="未安装"
+        :active-text="paymentCopy.debugWalletOn"
+        :inactive-text="paymentCopy.debugWalletOff"
         @input="emit('update:wallet-installed', $event)"
       />
       <p>{{ paymentCopy.debugOutcome }}</p>
@@ -127,13 +168,13 @@ const outcomes: PaymentOutcome[] = ['success', 'failure']
 <style scoped>
 .debug {
   position: fixed;
-  left: 16px;
-  bottom: 16px;
+  left: var(--space-16);
+  bottom: calc(var(--space-16) + var(--safe-bottom));
   z-index: var(--z-debug);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: min(360px, calc(100vw - 24px));
+  max-width: min(360px, calc(100vw - var(--space-24)));
   pointer-events: auto;
 }
 
@@ -141,7 +182,7 @@ const outcomes: PaymentOutcome[] = ['success', 'failure']
   margin-top: var(--space-8);
   padding: var(--space-16);
   overflow: auto;
-  max-height: min(70vh, 560px);
+  max-height: min(78vh, 640px);
   background: var(--color-surface-elevated);
   border: var(--border-width-1) solid var(--color-border-subtle);
   border-radius: var(--radius-12);

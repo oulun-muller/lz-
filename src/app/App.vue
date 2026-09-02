@@ -3,18 +3,20 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import DebugPanel from '@/shared/ui/DebugPanel.vue'
 import PaymentDemo from '@/features/payment/PaymentDemo.vue'
 import type {
+  MockStatus,
   PaymentDebugState,
   PaymentOutcome,
   PaymentStep,
 } from '@/features/payment/data/types'
-import { PREVIEW_WIDTHS } from '@/shared/utils/viewport'
 
 const stageRef = ref<HTMLElement | null>(null)
 const previewWidth = ref(typeof window !== 'undefined' && window.innerWidth <= 430 ? 0 : 412)
 const viewportWidth = ref(412)
 const viewportHeight = ref(720)
+const mockStatus = ref<MockStatus>('normal')
 const paymentStep = ref<PaymentStep | null>('confirm')
 const openPaymentSignal = ref(0)
+const resourcesReady = ref(false)
 
 const paymentDebug = ref<PaymentDebugState>({
   forceStep: null,
@@ -89,9 +91,11 @@ function setPaymentOutcome(value: PaymentOutcome) {
       <div ref="stageRef" class="app-shell__viewport">
         <PaymentDemo
           :viewport-width="viewportWidth"
+          :mock-status="mockStatus"
           :payment-debug="paymentDebug"
           :open-payment-signal="openPaymentSignal"
           @change-payment-step="paymentStep = $event"
+          @change-resources-ready="resourcesReady = $event"
         />
       </div>
     </div>
@@ -99,11 +103,13 @@ function setPaymentOutcome(value: PaymentOutcome) {
       :viewport-width="viewportWidth"
       :viewport-height="viewportHeight"
       :preview-width="previewWidth"
+      :mock-status="mockStatus"
       :payment-step="paymentStep"
       :payment-debug="paymentDebug"
       :payment-steps="paymentSteps"
-      :preview-widths="PREVIEW_WIDTHS"
+      :resources-ready="resourcesReady"
       @update:preview-width="previewWidth = $event"
+      @update:mock-status="mockStatus = $event"
       @open-payment="triggerOpenPayment"
       @update:payment-force-step="setPaymentForceStep"
       @update:wallet-installed="setWalletInstalled"
@@ -121,8 +127,8 @@ function setPaymentOutcome(value: PaymentOutcome) {
   height: 100%;
   padding: var(--space-12);
   background:
-    radial-gradient(circle at top, #2a2a30 0%, transparent 42%),
-    #111113;
+    radial-gradient(circle at top, var(--color-bg-shell-glow) 0%, transparent 42%),
+    var(--color-bg-shell);
 }
 
 .app-shell__stage {
