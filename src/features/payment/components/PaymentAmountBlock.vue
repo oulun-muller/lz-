@@ -19,6 +19,7 @@ defineProps<{
 <style scoped>
 .payment-amount {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: var(--space-4);
   align-items: center;

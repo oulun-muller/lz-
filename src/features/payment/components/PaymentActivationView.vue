@@ -54,6 +54,7 @@ function bind() {
   const scroller = scrollRef.value
   if (!scroller) return
   boundScroller = scroller
+  scroller.scrollTop = 0
   scroller.addEventListener('scroll', syncThumb, { passive: true })
   resizeObserver = new ResizeObserver(() => syncThumb())
   resizeObserver.observe(scroller)
@@ -88,16 +89,33 @@ onBeforeUnmount(() => {
           />
         </span>
       </div>
-      <div class="payment-activation__divider" />
-      <article
-        v-for="(item, index) in steps"
-        :key="`${item.heading}-${index}`"
-        class="payment-activation__step"
-      >
-        <p class="payment-activation__heading">{{ item.heading }}</p>
-        <p class="payment-activation__body">{{ item.body }}</p>
-        <img class="payment-activation__image" :src="item.image" :alt="item.heading" />
-      </article>
+      <template v-for="(item, index) in steps">
+        <div :key="`divider-${index}`" class="payment-activation__divider" />
+        <article :key="`${item.heading}-${index}`" class="payment-activation__step">
+          <div class="payment-activation__copy">
+            <p class="payment-activation__heading">{{ item.heading }}</p>
+            <div class="payment-activation__copy-stack">
+              <p class="payment-activation__body">
+                <span>{{ item.body }}</span>{{ item.linkHref ? '   ' : '' }}<a
+                  v-if="item.linkHref"
+                  class="payment-activation__link"
+                  :href="item.linkHref"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >{{ item.linkText }}</a>
+              </p>
+              <p v-if="item.hint" class="payment-activation__hint">{{ item.hint }}</p>
+            </div>
+          </div>
+          <img
+            class="payment-activation__image"
+            :src="item.image"
+            :alt="item.heading"
+            width="380"
+            height="213"
+          />
+        </article>
+      </template>
     </div>
     <div ref="trackRef" class="payment-activation__scrollbar" aria-hidden="true">
       <div
@@ -146,30 +164,40 @@ onBeforeUnmount(() => {
   gap: var(--space-4);
   align-items: center;
   justify-content: center;
+  width: 100%;
+  min-width: 0;
   padding: 0 var(--space-16);
+}
+
+.payment-activation__label {
+  flex-shrink: 0;
+  color: var(--color-payment-code-label);
+  font-size: var(--font-size-14);
+  line-height: var(--payment-activation-line);
+  white-space: nowrap;
 }
 
 .payment-activation__group {
   display: flex;
   gap: var(--space-8);
   align-items: center;
-}
-
-.payment-activation__label {
-  color: var(--color-payment-code-label);
-  font-size: var(--font-size-14);
+  min-width: 0;
 }
 
 .payment-activation__value {
+  min-width: 0;
   color: var(--color-payment-amount);
   font-size: var(--font-size-14);
+  line-height: var(--payment-activation-line);
+  overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 .payment-activation__divider {
   flex-shrink: 0;
   width: 100%;
   height: var(--border-width-hairline);
-  background: var(--color-border-subtle);
+  background: var(--payment-activation-divider);
 }
 
 .payment-activation__step {
@@ -178,7 +206,23 @@ onBeforeUnmount(() => {
   gap: var(--space-16);
   align-items: center;
   width: 100%;
+}
+
+.payment-activation__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: center;
+  width: 100%;
   text-align: center;
+}
+
+.payment-activation__copy-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--payment-activation-copy-stack-gap);
+  align-items: stretch;
+  width: 100%;
 }
 
 .payment-activation__heading {
@@ -186,20 +230,45 @@ onBeforeUnmount(() => {
   color: var(--color-payment-amount);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-bold);
-  line-height: var(--payment-activation-line);
+  line-height: var(--line-height-normal);
+  text-align: center;
+}
+
+.payment-activation__body,
+.payment-activation__hint {
+  margin: 0;
+  width: 100%;
+  font-weight: var(--font-weight-regular);
+  line-height: var(--payment-activation-body-leading);
+  overflow-wrap: anywhere;
 }
 
 .payment-activation__body {
-  margin: 0;
-  color: var(--color-payment-amount);
+  color: var(--color-payment-detail-value);
   font-size: var(--font-size-14);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--payment-activation-line);
+}
+
+.payment-activation__link {
+  color: var(--color-payment-primary);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.payment-activation__hint {
+  color: var(--color-payment-label);
+  font-size: var(--payment-activation-hint-size);
 }
 
 .payment-activation__image {
   display: block;
+  flex-shrink: 0;
   width: 100%;
+  max-width: var(--payment-activation-shot-width);
+  height: auto;
+  aspect-ratio: var(--payment-activation-shot-width) / var(--payment-activation-shot-height);
+  object-fit: cover;
+  border-radius: var(--radius-4);
 }
 
 .payment-activation__scrollbar {

@@ -19,6 +19,7 @@ const emit = defineEmits<{
 <style scoped>
 .payment-copy-btn {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: var(--payment-copy-icon);

@@ -23,7 +23,9 @@ export type MockStatus =
   | 'boundary'
   | 'abnormal'
 
-export type PageReadyState = 'ready' | 'loading' | 'error'
+export type PageReadyState = 'ready' | 'loading' | 'empty' | 'error'
+
+export type PaymentPageException = 'loading' | 'empty'
 
 export type DetailKey = 'game' | 'platform' | 'version' | 'language' | 'orderNo' | 'region' | 'edition' | 'note'
 
@@ -46,6 +48,9 @@ export interface ActivationStep {
   heading: string
   body: string
   image: string
+  linkText?: string
+  linkHref?: string
+  hint?: string
 }
 
 export interface PaymentMockConfig {

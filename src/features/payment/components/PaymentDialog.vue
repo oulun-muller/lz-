@@ -5,6 +5,7 @@ import type {
   ActivationStep,
   PaymentMethod,
   PaymentOrder,
+  PaymentPageException,
   PaymentPlacement,
   PaymentStep,
 } from '../data/types'
@@ -25,11 +26,13 @@ const props = defineProps<{
   method: PaymentMethod
   order: PaymentOrder
   activationSteps: ActivationStep[]
+  pageException?: PaymentPageException | null
 }>()
 
 const emit = defineEmits<{
   close: []
   back: []
+  refresh: []
   'select-method': [method: PaymentMethod]
   'submit-pay': []
   'open-activation': []
@@ -42,15 +45,22 @@ const dialogClass = computed(() =>
     : 'payment-dialog payment-dialog--center',
 )
 
-const showBack = computed(() =>
-  ['qrcode', 'loading', 'failure', 'activation'].includes(props.step),
+const showException = computed(() => Boolean(props.pageException))
+
+const showBack = computed(
+  () =>
+    !showException.value &&
+    ['qrcode', 'loading', 'failure', 'activation'].includes(props.step),
 )
 
-const showDualActions = computed(() => props.step === 'success')
-const showPayAction = computed(() => props.step === 'confirm')
-const showBackAction = computed(() => props.step === 'failure')
-const showFooterSpacer = computed(() =>
-  ['qrcode', 'loading', 'allocating'].includes(props.step),
+const showDualActions = computed(() => !showException.value && props.step === 'success')
+const showPayAction = computed(() => !showException.value && props.step === 'confirm')
+const showBackAction = computed(() => !showException.value && props.step === 'failure')
+const showRefreshAction = computed(() => props.pageException === 'empty')
+const showFooterSpacer = computed(
+  () =>
+    props.pageException === 'loading' ||
+    (!showException.value && ['qrcode', 'loading', 'allocating'].includes(props.step)),
 )
 
 const successDetails = computed(() => [
@@ -99,8 +109,20 @@ const successDetails = computed(() => [
         </button>
       </header>
 
-      <div class="payment-dialog__body" :class="`is-${step}`">
-        <template v-if="step === 'confirm'">
+      <div
+        class="payment-dialog__body"
+        :class="pageException ? `is-page-${pageException}` : `is-${step}`"
+      >
+        <PaymentStatusView
+          v-if="pageException === 'loading'"
+          variant="page-loading"
+        />
+        <PaymentStatusView
+          v-else-if="pageException === 'empty'"
+          variant="page-empty"
+        />
+
+        <template v-else-if="step === 'confirm'">
           <PaymentAmountBlock :order="order" />
           <div class="payment-dialog__rule" />
           <PaymentDetailCard :details="order.details" />
@@ -133,7 +155,7 @@ const successDetails = computed(() => [
       </div>
 
       <footer
-        v-if="showPayAction || showDualActions || showBackAction"
+        v-if="showPayAction || showDualActions || showBackAction || showRefreshAction"
         class="payment-dialog__footer"
       >
         <template v-if="showDualActions">
@@ -152,6 +174,14 @@ const successDetails = computed(() => [
             {{ paymentCopy.done }}
           </button>
         </template>
+        <button
+          v-else-if="showRefreshAction"
+          type="button"
+          class="payment-dialog__btn payment-dialog__btn--primary payment-dialog__btn--full"
+          @click="emit('refresh')"
+        >
+          {{ paymentCopy.pageRefresh }}
+        </button>
         <button
           v-else-if="showPayAction"
           type="button"
@@ -222,6 +252,11 @@ const successDetails = computed(() => [
 .payment-dialog__body.is-confirm,
 .payment-dialog__body.is-success {
   padding: 0;
+}
+
+.payment-dialog__body.is-page-loading,
+.payment-dialog__body.is-page-empty {
+  gap: var(--space-16);
 }
 
 .payment-dialog__rule {

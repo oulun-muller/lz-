@@ -17,21 +17,21 @@ const emit = defineEmits<{
   <dl v-if="details.length" class="payment-detail">
     <div v-for="row in details" :key="row.key" class="payment-detail__row">
       <dt>{{ detailLabel(row.key) }}</dt>
-      <dd>
-        <img
-          v-if="row.platformIcon === 'steam'"
-          class="payment-detail__platform"
-          :src="iconSteam"
-          alt=""
-        />
-        <span class="payment-detail__value" :class="{ 'is-copyable': row.copyable }">
-          <span>{{ row.value }}</span>
-          <PaymentCopyButton
-            v-if="row.copyable"
-            :label="paymentCopy.copyOrder"
-            @copy="emit('copy-text', row.value)"
+      <dd :class="{ 'is-copyable': row.copyable }">
+        <span class="payment-detail__cluster">
+          <img
+            v-if="row.platformIcon === 'steam'"
+            class="payment-detail__platform"
+            :src="iconSteam"
+            alt=""
           />
+          <span class="payment-detail__value">{{ row.value }}</span>
         </span>
+        <PaymentCopyButton
+          v-if="row.copyable"
+          :label="paymentCopy.copyOrder"
+          @copy="emit('copy-text', row.value)"
+        />
       </dd>
     </div>
   </dl>
@@ -40,6 +40,7 @@ const emit = defineEmits<{
 <style scoped>
 .payment-detail {
   margin: 0;
+  flex: 1;
   width: 100%;
   min-height: 0;
   padding: 0 var(--space-16);
@@ -49,7 +50,7 @@ const emit = defineEmits<{
 .payment-detail__row {
   display: flex;
   gap: var(--space-4);
-  align-items: center;
+  align-items: flex-start;
   min-height: var(--payment-detail-row-height);
   padding: var(--space-12) var(--space-16);
 }
@@ -60,42 +61,46 @@ const emit = defineEmits<{
   color: var(--color-payment-detail-label);
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-regular);
-  line-height: normal;
+  line-height: var(--payment-detail-line);
+  white-space: nowrap;
 }
 
 .payment-detail__row dd {
   display: flex;
   flex: 1;
   gap: var(--space-4);
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
   min-width: 0;
   margin: 0;
   color: var(--color-payment-detail-value);
   font-size: var(--font-size-14);
-  line-height: normal;
+  line-height: var(--payment-detail-line);
   text-align: right;
 }
 
-.payment-detail__value {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  min-width: 0;
-}
-
-.payment-detail__value.is-copyable {
+.payment-detail__row dd.is-copyable {
   gap: var(--space-8);
-}
-
-.payment-detail__value.is-copyable > span {
   color: var(--color-payment-amount);
 }
 
-.payment-detail__value > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.payment-detail__cluster {
+  display: flex;
+  flex: 1;
+  gap: var(--space-4);
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.payment-detail__value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.payment-detail__row dd.is-copyable .payment-detail__value {
+  word-break: break-all;
 }
 
 .payment-detail__platform {

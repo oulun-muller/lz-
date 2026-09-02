@@ -82,6 +82,8 @@
   --payment-icon: 32px;
   --payment-method-height: 48px;
   --payment-detail-row-height: 48px;
+  --payment-detail-line: 22px;
+  --payment-code-line: 22px;
   --payment-method-icon: 24px;
   --payment-method-check: 20px;
   --payment-btn-height: 54px;
@@ -90,11 +92,23 @@
   --payment-spinner-wrap: 88px;
   --payment-spinner: 56px;
   --payment-caution: 80px;
+  --payment-empty-icon: 88px;
   --payment-success-icon: 48px;
   --payment-copy-icon: 18px;
   --payment-platform-icon: 18px;
   --payment-buy-height: 40px;
   --payment-activation-line: 26px;
+  --payment-activation-body-leading: 1.8;
+  --payment-activation-hint-size: var(--font-size-12);
+  --payment-activation-copy-stack-gap: var(--space-4);
+  --payment-activation-shot-width: 380px;
+  --payment-activation-shot-height: 213px;
+  --payment-activation-divider: linear-gradient(
+    90deg,
+    rgba(234, 247, 255, 0) 0%,
+    rgba(234, 247, 255, 0.2) 50.3124%,
+    rgba(234, 247, 255, 0) 100%
+  );
   --color-payment-scrollbar: rgba(255, 255, 255, 0.12);
   --payment-scrollbar-gutter: 12px;
   --payment-scrollbar-thumb: 4px;

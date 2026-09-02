@@ -3,10 +3,11 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Message } from 'element-ui'
 import PaymentDialog from './components/PaymentDialog.vue'
 import { paymentCopy } from './data/copy'
-import { getPaymentMock } from './data/mock'
+import { getPaymentMock, isFailPageMock } from './data/mock'
 import type {
   MockStatus,
   PaymentDebugState,
+  PaymentPageException,
   PaymentPlacement,
   PaymentStep,
 } from './data/types'
@@ -26,13 +27,29 @@ const props = defineProps<{
 const emit = defineEmits<{
   'change-payment-step': [step: PaymentStep | null]
   'change-resources-ready': [ready: boolean]
+  'reload-page': []
 }>()
 
 const payload = computed(() => getPaymentMock(props.mockStatus))
 const paymentOrder = computed(() => payload.value.order)
 const paymentDebugRef = computed(() => props.paymentDebug)
 const pageBlocked = computed(
-  () => payload.value.pageState === 'loading' || payload.value.pageState === 'error',
+  () => payload.value.pageState === 'loading' || isFailPageMock(props.mockStatus),
+)
+
+const pageException = computed<PaymentPageException | null>(() => {
+  if (payload.value.pageState === 'loading') return 'loading'
+  if (isFailPageMock(props.mockStatus)) return 'empty'
+  return null
+})
+
+const dismissedException = ref(false)
+
+watch(
+  () => props.mockStatus,
+  () => {
+    dismissedException.value = false
+  },
 )
 
 const {
@@ -49,6 +66,13 @@ const {
   order: () => paymentOrder.value,
   debug: () => paymentDebugRef.value,
 })
+
+const exceptionVisible = computed(
+  () => Boolean(pageException.value) && !paymentVisible.value && !dismissedException.value,
+)
+
+const dialogVisible = computed(() => paymentVisible.value || exceptionVisible.value)
+const dialogException = computed(() => (exceptionVisible.value ? pageException.value : null))
 
 const paymentPlacement = computed<PaymentPlacement>(() =>
   getPaymentPlacement(props.viewportWidth),
@@ -149,6 +173,18 @@ function onBuy() {
   openPayment()
 }
 
+function onDialogClose() {
+  if (exceptionVisible.value) {
+    dismissedException.value = true
+    return
+  }
+  closePayment()
+}
+
+function onReloadPage() {
+  emit('reload-page')
+}
+
 onBeforeUnmount(() => {
   toastTimers.forEach((timer) => window.clearTimeout(timer))
   toastTimers.clear()
@@ -159,18 +195,7 @@ onBeforeUnmount(() => {
   <div class="payment-demo">
     <img class="payment-demo__bg" :src="landingHero" alt="" />
 
-    <el-empty
-      v-if="payload.pageState === 'loading'"
-      class="payment-demo__empty"
-      :description="paymentCopy.pageLoading"
-    />
-    <el-empty
-      v-else-if="payload.pageState === 'error'"
-      class="payment-demo__empty"
-      :description="payload.errorMessage || `${paymentCopy.pageError}，${paymentCopy.pageErrorHint}`"
-    />
-
-    <header v-else class="payment-demo__top">
+    <header class="payment-demo__top">
       <el-button type="text" class="payment-demo__login" @click="onLogin">
         {{ paymentCopy.login }}
       </el-button>
@@ -185,14 +210,16 @@ onBeforeUnmount(() => {
     </el-button>
 
     <PaymentDialog
-      :visible="paymentVisible"
+      :visible="dialogVisible"
       :placement="paymentPlacement"
       :step="paymentStep"
       :method="paymentMethod"
       :order="paymentOrder"
       :activation-steps="payload.activationSteps"
-      @close="closePayment"
+      :page-exception="dialogException"
+      @close="onDialogClose"
       @back="goBack"
+      @refresh="onReloadPage"
       @select-method="selectMethod"
       @submit-pay="submitPay"
       @open-activation="openActivation"
@@ -224,16 +251,6 @@ onBeforeUnmount(() => {
   height: 100%;
   object-fit: cover;
   object-position: center top;
-}
-
-.payment-demo__empty {
-  position: absolute;
-  inset: 0;
-  z-index: var(--z-content);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-overlay);
 }
 
 .payment-demo__top {

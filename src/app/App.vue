@@ -96,6 +96,7 @@ function setPaymentOutcome(value: PaymentOutcome) {
           :open-payment-signal="openPaymentSignal"
           @change-payment-step="paymentStep = $event"
           @change-resources-ready="resourcesReady = $event"
+          @reload-page="mockStatus = 'normal'"
         />
       </div>
     </div>

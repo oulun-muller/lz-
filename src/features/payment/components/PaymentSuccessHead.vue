@@ -33,9 +33,11 @@ const emit = defineEmits<{
 <style scoped>
 .payment-success {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;
+  width: 100%;
   padding: 0 var(--space-16) var(--space-16);
   text-align: center;
 }
@@ -56,25 +58,34 @@ const emit = defineEmits<{
 .payment-success__code {
   display: flex;
   gap: var(--space-4);
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.payment-success__label {
+  flex-shrink: 0;
+  color: var(--color-payment-code-label);
+  font-size: var(--font-size-16);
+  line-height: var(--payment-code-line);
+  white-space: nowrap;
 }
 
 .payment-success__group {
   display: flex;
   gap: var(--space-8);
-  align-items: center;
-}
-
-.payment-success__label {
-  color: var(--color-payment-code-label);
-  font-size: var(--font-size-16);
-  line-height: normal;
+  align-items: flex-start;
+  min-width: 0;
 }
 
 .payment-success__value {
+  min-width: 0;
   color: var(--color-payment-amount);
   font-size: var(--font-size-16);
-  line-height: normal;
+  line-height: var(--payment-code-line);
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: break-all;
 }
 </style>

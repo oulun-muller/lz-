@@ -55,6 +55,7 @@ const emit = defineEmits<{
 <style scoped>
 .payment-methods {
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;

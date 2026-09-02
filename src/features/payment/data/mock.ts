@@ -111,7 +111,7 @@ export const paymentMocks: Record<MockStatus, PaymentMockPayload> = {
   },
   empty: {
     status: 'empty',
-    pageState: 'ready',
+    pageState: 'empty',
     errorMessage: '',
     order: orderEmpty,
     activationSteps: [],
@@ -154,18 +154,24 @@ export const paymentMocks: Record<MockStatus, PaymentMockPayload> = {
   },
   boundary: {
     status: 'boundary',
-    pageState: 'ready',
+    pageState: 'empty',
     errorMessage: '',
     order: orderBoundary,
     activationSteps: [activationSteps[0]],
   },
   abnormal: {
     status: 'abnormal',
-    pageState: 'ready',
+    pageState: 'empty',
     errorMessage: '',
     order: orderAbnormal,
     activationSteps,
   },
+}
+
+export const failPageMockStatuses: MockStatus[] = ['empty', 'error', 'boundary', 'abnormal']
+
+export function isFailPageMock(status: MockStatus): boolean {
+  return failPageMockStatuses.includes(status)
 }
 
 export function getPaymentMock(status: MockStatus): PaymentMockPayload {
