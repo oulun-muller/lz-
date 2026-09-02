@@ -288,15 +288,17 @@ function onDialogClose() {
           <p class="payment-dialog__success-title">{{ paymentCopy.activationGenerated }}</p>
           <div class="payment-dialog__code-row">
             <span class="payment-dialog__code-label">{{ paymentCopy.activationCodeLabel }}</span>
-            <span class="payment-dialog__code-value">{{ order.activationCode }}</span>
-            <button
-              type="button"
-              class="payment-dialog__copy-btn"
-              :aria-label="paymentCopy.copyCode"
-              @click="emit('copy-text', order.activationCode)"
-            >
-              <img :src="iconCopy" alt="" />
-            </button>
+            <span class="payment-dialog__code-group">
+              <span class="payment-dialog__code-value">{{ order.activationCode }}</span>
+              <button
+                type="button"
+                class="payment-dialog__copy-btn"
+                :aria-label="paymentCopy.copyCode"
+                @click="emit('copy-text', order.activationCode)"
+              >
+                <img :src="iconCopy" alt="" />
+              </button>
+            </span>
           </div>
         </div>
         <dl class="payment-dialog__detail-card">
@@ -313,16 +315,21 @@ function onDialogClose() {
                 :src="iconSteam"
                 alt=""
               />
-              <span>{{ row.value }}</span>
-              <button
-                v-if="row.copyable"
-                type="button"
-                class="payment-dialog__copy-btn payment-dialog__copy-btn--inline"
-                :aria-label="paymentCopy.copyOrder"
-                @click="emit('copy-text', row.value)"
+              <span
+                class="payment-dialog__detail-value"
+                :class="{ 'is-copyable': row.copyable }"
               >
-                <img :src="iconCopy" alt="" />
-              </button>
+                <span>{{ row.value }}</span>
+                <button
+                  v-if="row.copyable"
+                  type="button"
+                  class="payment-dialog__copy-btn payment-dialog__copy-btn--inline"
+                  :aria-label="paymentCopy.copyOrder"
+                  @click="emit('copy-text', row.value)"
+                >
+                  <img :src="iconCopy" alt="" />
+                </button>
+              </span>
             </dd>
           </div>
         </dl>
@@ -339,15 +346,17 @@ function onDialogClose() {
       <template v-else-if="step === 'activation'">
         <div class="payment-dialog__activation-code">
           <span class="payment-dialog__activation-label">{{ paymentCopy.activationCodeLabel }}</span>
-          <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
-          <button
-            type="button"
-            class="payment-dialog__copy-btn"
-            :aria-label="paymentCopy.copyCode"
-            @click="emit('copy-text', order.activationCode)"
-          >
-            <img :src="iconCopy" alt="" />
-          </button>
+          <span class="payment-dialog__code-group">
+            <span class="payment-dialog__activation-value">{{ order.activationCode }}</span>
+            <button
+              type="button"
+              class="payment-dialog__copy-btn"
+              :aria-label="paymentCopy.copyCode"
+              @click="emit('copy-text', order.activationCode)"
+            >
+              <img :src="iconCopy" alt="" />
+            </button>
+          </span>
         </div>
         <div class="payment-dialog__divider" />
         <div
@@ -542,7 +551,18 @@ function onDialogClose() {
   text-align: right;
 }
 
-.payment-dialog__detail-row dd span {
+.payment-dialog__detail-value {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  min-width: 0;
+}
+
+.payment-dialog__detail-value.is-copyable {
+  gap: var(--space-8);
+}
+
+.payment-dialog__detail-value > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -725,9 +745,15 @@ function onDialogClose() {
 .payment-dialog__code-row,
 .payment-dialog__activation-code {
   display: flex;
-  gap: var(--space-8);
+  gap: var(--space-4);
   align-items: center;
   justify-content: center;
+}
+
+.payment-dialog__code-group {
+  display: flex;
+  gap: var(--space-8);
+  align-items: center;
 }
 
 .payment-dialog__code-label {
@@ -743,7 +769,6 @@ function onDialogClose() {
 }
 
 .payment-dialog__activation-code {
-  gap: var(--space-4);
   padding: 0 var(--space-16);
 }
 

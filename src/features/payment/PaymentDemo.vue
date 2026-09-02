@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import { Message } from 'element-ui'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import PaymentDialog from './components/PaymentDialog.vue'
 import { paymentCopy } from './data/copy'
 import { defaultPaymentOrder } from './data/mock'
@@ -12,6 +11,7 @@ import type {
 import { usePayment } from './state/usePayment'
 import { getPaymentPlacement } from '@/shared/utils/viewport'
 import landingHero from './assets/landing-hero.png'
+import iconToastSuccess from './assets/icon-toast-success.svg'
 
 const props = defineProps<{
   viewportWidth: number
@@ -56,15 +56,29 @@ watch(
   },
 )
 
+const toastVisible = ref(false)
+let toastTimer = 0
+
+function showCopyToast() {
+  toastVisible.value = true
+  window.clearTimeout(toastTimer)
+  toastTimer = window.setTimeout(() => {
+    toastVisible.value = false
+  }, 2000)
+}
+
 function onCopyText(text: string) {
+  const done = () => showCopyToast()
   if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      Message.success(paymentCopy.copySuccess)
-    })
+    navigator.clipboard.writeText(text).then(done).catch(done)
     return
   }
-  Message.success(paymentCopy.copySuccess)
+  done()
 }
+
+onBeforeUnmount(() => {
+  window.clearTimeout(toastTimer)
+})
 </script>
 
 <template>
@@ -90,6 +104,13 @@ function onCopyText(text: string) {
       @open-activation="openActivation"
       @copy-text="onCopyText"
     />
+
+    <transition name="payment-toast">
+      <div v-if="toastVisible" class="payment-toast" role="status">
+        <img class="payment-toast__icon" :src="iconToastSuccess" alt="" />
+        <span class="payment-toast__text">{{ paymentCopy.copySuccess }}</span>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -144,5 +165,45 @@ function onCopyText(text: string) {
   font-size: var(--font-size-14);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
+}
+
+.payment-toast {
+  position: absolute;
+  top: var(--payment-toast-top);
+  left: 50%;
+  z-index: calc(var(--z-payment) + 1);
+  display: flex;
+  align-items: center;
+  height: var(--payment-toast-height);
+  padding: var(--payment-toast-pad-y) var(--space-16);
+  border: var(--border-width-1) solid var(--color-payment-toast-border);
+  background: var(--color-payment-toast);
+  box-shadow: var(--payment-toast-shadow);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.payment-toast__icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.payment-toast__text {
+  padding: 0 var(--space-8);
+  color: var(--color-payment-amount);
+  font-size: var(--font-size-14);
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.payment-toast-enter-active,
+.payment-toast-leave-active {
+  transition: opacity 180ms ease;
+}
+
+.payment-toast-enter,
+.payment-toast-leave-to {
+  opacity: 0;
 }
 </style>

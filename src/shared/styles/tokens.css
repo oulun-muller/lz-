@@ -72,6 +72,15 @@
   --payment-scrollbar-pad-bottom: 32px;
   --payment-sheet-in-duration: 400ms;
   --payment-sheet-out-duration: 320ms;
+  --color-payment-toast: #1e242b;
+  --color-payment-toast-border: rgba(234, 247, 255, 0.1);
+  --payment-toast-shadow:
+    0 2px 3px #0d0d0d,
+    0 4px 8px rgba(13, 13, 13, 0.32),
+    0 6px 16px rgba(13, 13, 13, 0.2);
+  --payment-toast-top: 120px;
+  --payment-toast-height: 40px;
+  --payment-toast-pad-y: 7px;
 
   /* Z-index */
   --z-content: 1;

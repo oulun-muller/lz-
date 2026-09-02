@@ -13,7 +13,7 @@ export const paymentCopy = {
   payFailedHint: '请更换支付方式或稍后重试',
   back: '返回',
   activationGenerated: '激活码已生成',
-  activationCodeLabel: '激活码：',
+  activationCodeLabel: '激活码:',
   copyCode: '复制激活码',
   copyOrder: '复制订单号',
   copySuccess: '复制成功',
