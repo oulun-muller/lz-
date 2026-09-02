@@ -40,16 +40,18 @@ const emit = defineEmits<{
 <style scoped>
 .payment-detail {
   margin: 0;
-  overflow: hidden;
-  border-radius: var(--radius-4);
-  background: var(--color-payment-card);
+  width: 100%;
+  min-height: 0;
+  padding: 0 var(--space-16);
+  overflow: auto;
 }
 
 .payment-detail__row {
   display: flex;
   gap: var(--space-4);
   align-items: center;
-  padding: var(--space-16);
+  min-height: var(--payment-detail-row-height);
+  padding: var(--space-12) var(--space-16);
 }
 
 .payment-detail__row dt {
@@ -84,6 +86,10 @@ const emit = defineEmits<{
 
 .payment-detail__value.is-copyable {
   gap: var(--space-8);
+}
+
+.payment-detail__value.is-copyable > span {
+  color: var(--color-payment-amount);
 }
 
 .payment-detail__value > span {

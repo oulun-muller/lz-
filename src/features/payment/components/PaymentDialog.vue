@@ -102,6 +102,7 @@ const successDetails = computed(() => [
       <div class="payment-dialog__body" :class="`is-${step}`">
         <template v-if="step === 'confirm'">
           <PaymentAmountBlock :order="order" />
+          <div class="payment-dialog__rule" />
           <PaymentDetailCard :details="order.details" />
           <PaymentMethodPicker :method="method" @select-method="emit('select-method', $event)" />
         </template>
@@ -116,6 +117,7 @@ const successDetails = computed(() => [
 
         <template v-else-if="step === 'success'">
           <PaymentSuccessHead :order="order" @copy-text="emit('copy-text', $event)" />
+          <div class="payment-dialog__rule" />
           <PaymentDetailCard :details="successDetails" @copy-text="emit('copy-text', $event)" />
         </template>
 
@@ -217,6 +219,19 @@ const successDetails = computed(() => [
   overflow: hidden;
 }
 
+.payment-dialog__body.is-confirm,
+.payment-dialog__body.is-success {
+  padding: 0;
+}
+
+.payment-dialog__rule {
+  flex-shrink: 0;
+  width: calc(100% - var(--space-32));
+  height: var(--payment-dialog-border-width);
+  margin-inline: auto;
+  background: var(--color-payment-dialog-border);
+}
+
 .payment-dialog__body.is-qrcode {
   gap: var(--space-16);
   align-items: center;
@@ -298,6 +313,8 @@ const successDetails = computed(() => [
   height: var(--payment-dialog-height);
   margin: 0 !important;
   overflow: hidden;
+  border: 0;
+  outline: none;
   background: var(--color-payment-surface);
   box-shadow: var(--payment-dialog-shadow);
 }
@@ -334,6 +351,10 @@ const successDetails = computed(() => [
   left: 50%;
   width: min(var(--payment-dialog-width-pad), calc(100% - var(--space-32))) !important;
   max-width: var(--payment-dialog-width-pad);
+  border: 0;
+  box-shadow:
+    0 0 0 var(--payment-dialog-border-width) var(--color-payment-dialog-border),
+    var(--payment-dialog-shadow);
   border-radius: var(--payment-dialog-radius);
   transform: translate(-50%, -50%);
 }

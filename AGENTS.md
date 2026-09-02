@@ -17,8 +17,8 @@
 
 ## 弹窗行为
 
-- 预览宽度 `< 768px`：底部弹窗（Phone）。
-- 预览宽度 `>= 768px`：600px 居中弹窗（Pad）。
+- 预览宽度 `< 768px`：底部弹窗（Phone），无描边。
+- 预览宽度 `>= 768px`：600px 居中弹窗（Pad），描边 `--payment-dialog-border-width` / `--color-payment-dialog-border`（Figma `0.5px` `#39404d`）。
 - 同一 `PaymentDialog`，仅 placement 不同。
 
 ## 不要做
@@ -26,3 +26,9 @@
 - 不要把 Demo 里的虚构支付接真实接口。
 - 不要删除 Debug 窗口的状态切换，除非明确交付生产包。
 - 不要把电梯或其他 Feature 重新耦合进本仓库。
+
+## Cursor Cloud 预览
+
+- 只认本仓库 Vite：`http://127.0.0.1:45217`（`vite.config.ts` 锁死此端口）。
+- 不要再起第二套 Vite，也不要改端口。`45218` 曾是 `/tmp/lz-repo` 里 GitHub Pages 旧 clone，代码和当前分支不是同一份。
+- 若 45217 已被占用，复用本仓库已有的 `payment-vite` 进程，不要另开端口。

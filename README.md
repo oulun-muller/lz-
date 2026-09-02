@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-开发服务默认：`http://127.0.0.1:45217`
+开发服务默认：`http://127.0.0.1:45217`（本仓库唯一预览地址，不要用 45218）。
 
 ```bash
 npm run build
@@ -48,18 +48,3 @@ src/
 ```
 
 更完整的交付说明见 `DELIVERY.md`。
-
-## GitHub Pages
-
-线上预览：<https://oulun-muller.github.io/lz-Mobile-payment-popup/>
-
-发布目录为 **`docs/`**（构建后的静态文件）。Settings → Pages → **`main` / `/docs`**。
-
-更新线上版本：
-
-```bash
-BASE_PATH=/lz-Mobile-payment-popup/ npm run build
-rm -rf docs && cp -a dist docs && touch docs/.nojekyll
-git add docs src && git commit -m "chore: update GitHub Pages build" && git push
-```
-

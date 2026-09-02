@@ -64,11 +64,15 @@
   --color-payment-amount: #eaf7ff;
   --color-payment-label: rgba(234, 247, 255, 0.4);
   --color-payment-detail-label: rgba(234, 247, 255, 0.6);
+  --color-payment-method-label: rgba(234, 247, 255, 0.4);
+  --color-payment-code-label: rgba(234, 247, 255, 0.6);
   --color-payment-detail-value: rgba(234, 247, 255, 0.8);
   --color-payment-card: rgba(57, 64, 77, 0.3);
   --color-payment-primary: #386efe;
   --color-payment-primary-border: #3887ff;
   --color-payment-secondary-btn: #39404d;
+  --color-payment-dialog-border: #39404d;
+  --payment-dialog-border-width: 0.5px;
   --payment-dialog-width-pad: 600px;
   --payment-dialog-height: 594px;
   --payment-dialog-radius: 8px;
@@ -77,6 +81,7 @@
   --payment-icon-btn: 48px;
   --payment-icon: 32px;
   --payment-method-height: 48px;
+  --payment-detail-row-height: 48px;
   --payment-method-icon: 24px;
   --payment-method-check: 20px;
   --payment-btn-height: 54px;

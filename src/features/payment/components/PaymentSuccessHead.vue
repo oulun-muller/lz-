@@ -36,7 +36,7 @@ const emit = defineEmits<{
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;
-  padding: 0 var(--space-16) var(--space-48);
+  padding: 0 var(--space-16) var(--space-16);
   text-align: center;
 }
 
@@ -67,7 +67,7 @@ const emit = defineEmits<{
 }
 
 .payment-success__label {
-  color: var(--color-payment-label);
+  color: var(--color-payment-code-label);
   font-size: var(--font-size-16);
   line-height: normal;
 }

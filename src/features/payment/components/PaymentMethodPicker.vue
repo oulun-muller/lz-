@@ -58,11 +58,13 @@ const emit = defineEmits<{
   flex-direction: column;
   gap: var(--space-16);
   align-items: center;
+  width: 100%;
+  padding: 0 var(--space-16);
 }
 
 .payment-methods__label {
   margin: 0;
-  color: var(--color-payment-detail-label);
+  color: var(--color-payment-method-label);
   font-size: var(--font-size-14);
   line-height: normal;
 }

@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
 }
 
 .payment-activation__label {
-  color: var(--color-payment-label);
+  color: var(--color-payment-code-label);
   font-size: var(--font-size-14);
 }
 
