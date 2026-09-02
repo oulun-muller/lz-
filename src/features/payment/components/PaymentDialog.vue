@@ -508,7 +508,7 @@ function onDialogClose() {
 .payment-dialog__amount-block {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-4);
   align-items: center;
   padding-bottom: var(--space-16);
   text-align: center;
